@@ -5,6 +5,6 @@ def with_retry(func, retries=2, wait=1):
         try:
             return func()
         except Exception as e:
-            if attempt == retires:
+            if attempt == retries:
                 raise
             time.sleep(wait)

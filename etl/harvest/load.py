@@ -38,10 +38,10 @@ def load_rows(rows: List[Dict[str, Any]]) -> None:
     engine = _get_engine()
     harvest = _get_harvest_table(engine)
 
-    # UPSERTの自然キー（仮）
-    conflict_cols = ["company", "crop", "month"]
-
     stmt = insert(harvest).values(rows)
+
+    # UPSERTの自然キ-
+    conflict_cols = ["company", "crop", "month"]
 
     # 更新対象：キー以外
     update_cols = {

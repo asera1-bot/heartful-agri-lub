@@ -15,7 +15,7 @@ def setup_logger(name: str) -> logging.Logger:
     fh = logging.FileHandler(LOG_DIR / "etl.log")
     fh.setFormatter(fmt)
 
-    sh = logging.StreamHndler()
+    sh = logging.StreamHandler()
     sh.setFormatter(fmt)
 
     if not logger.handlers:

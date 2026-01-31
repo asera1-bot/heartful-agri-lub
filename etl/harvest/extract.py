@@ -5,7 +5,7 @@ from typing import Iterable, Optional
 
 import pandas as pd
 
-from tel.common.logging import setup_logger
+from etl.common.logging import setup_logger
 
 logger = setup_logger("harvest_etl")
 

@@ -2,36 +2,33 @@ from __future__ import annotations
 
 import os
 from sqlalchemy import create_engine, text
-
 from etl.common.logging import setup_logger
 
 logger = setup_logger("harvest_etl")
 
+MV_NAME = "mv_harvest_monthly"
+
 def refresh_mv(concurrently: bool = False) -> None:
-    """
-    Refresh materialized view for harvest.
-    - concurrently=True     : non-blocking (requires UNIQUE index)
-    - concurrently=False    : blocking but simple (default)
-    """
     url = os.getenv("DATABASE_URL")
     if not url:
         raise RuntimeError("DATABASE_URL is not set")
 
-    engine = create_engine(url, future=True)
+    engine = create_engine(url, future=True, pool_pre_ping=True)
 
     if concurrently:
-        sql = "REFRESH MATERIALIZED VIEW CONCURRENTLY mv_harvest_monthly"
+        sql = f"REFRESH MATERIALIZED VIEW CONCURRENTLY {MV_NAME}"
+        # CONCURRENLTY はトランザクション外
+        try:
+            with engine.connect() as conn:
+                conn.execute(text(sql))
+            logger.info("refresh_mv done concurrently=True")
+        except Exception as e:
+            logger.warning("refresh_mv failed concurrently=True reason=%s", e, exc_info=True)
     else:
-        sql = "REFRESH MATERIALIZED VIEW mv_harvest_monthly"
-
-    # CONCURRENTLY　はトランザクション外で実行する必要あり
-    if concurrently:
-        with engine.connect() as conn:
-            conn.execute(text(sql))
-    else:
-        with engine.begin() as conn:
-            conn.execute(text(sql))
-
-    logger.info(
-            f"refresh_mv done concurrenlty={concurrently}"
-    )
+        sql = f"REFRESH MATERIALIZED VIEW {MV_NAME}"
+        try:
+            with engine.begin() as conn:
+                conn.execute(text(sql))
+            logger.info("refresh_mv done concurrently=False")
+        except Exception as e:
+            logger.warning("refresh_mv failed concurrently=False reason=$s", e, exc_info=True)

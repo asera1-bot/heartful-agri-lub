@@ -164,3 +164,33 @@ NameError: name 'mpping' is not defined. Did you mean: 'mapping'?
 2026-01-31 12:51:25,119 | INFO | harvest_etl | success csv=harvest_test.csv
 2026-01-31 12:51:25,173 | INFO | harvest_etl | refresh_mv done concurrenlty=False
 2026-01-31 12:51:25,173 | INFO | harvest_etl | ETL finished ok=1 ng=0
+2026-01-31 18:01:57,586 | INFO | harvest_etl | start csv=harvest_test.csv
+2026-01-31 18:01:59,588 | ERROR | harvest_etl | failed csv=harvest_test.csv reason=/tmp/harvest_test.csv
+Traceback (most recent call last):
+  File "/home/asera1231/harvest_ETL/etl/harvest/run.py", line 47, in run
+    with_retry(process)
+  File "/home/asera1231/harvest_ETL/etl/common/retry.py", line 6, in with_retry
+    return func()
+           ^^^^^^
+  File "/home/asera1231/harvest_ETL/etl/harvest/run.py", line 26, in process
+    df = extract_csv(csv_path)
+         ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/asera1231/harvest_ETL/etl/harvest/extract.py", line 47, in extract_csv
+    raise FileNotFoundError(str(path))
+FileNotFoundError: /tmp/harvest_test.csv
+2026-01-31 18:01:59,591 | WARNING | harvest_etl | mv skipped ok=0 ng=1
+2026-01-31 18:01:59,591 | INFO | harvest_etl | ETL finished ok=0 ng=1
+2026-01-31 18:03:55,789 | INFO | harvest_etl | start csv=harvest_test.csv
+2026-01-31 18:03:55,803 | WARNING | harvest_etl | read_csv failed file=harvest_test.csv encoding=cp932 reason='cp932' codec can't decode byte 0x83 in position 60: illegal multibyte sequence
+2026-01-31 18:03:55,806 | WARNING | harvest_etl | read_csv failed file=harvest_test.csv encoding=shift_jis reason='shift_jis' codec can't decode byte 0x83 in position 60: illegal multibyte sequence
+2026-01-31 18:03:55,815 | INFO | harvest_etl | read_csv_file=harvest_test.csv encoding=utf-8-sig rows=2 cols=4
+2026-01-31 18:03:56,153 | INFO | harvest_etl | upserted rows=2
+2026-01-31 18:03:56,153 | INFO | harvest_etl | success csv=harvest_test.csv
+2026-01-31 18:04:15,576 | INFO | harvest_etl | start csv=harvest_test.csv
+2026-01-31 18:04:15,578 | WARNING | harvest_etl | read_csv failed file=harvest_test.csv encoding=cp932 reason='cp932' codec can't decode byte 0x83 in position 60: illegal multibyte sequence
+2026-01-31 18:04:15,578 | WARNING | harvest_etl | read_csv failed file=harvest_test.csv encoding=shift_jis reason='shift_jis' codec can't decode byte 0x83 in position 60: illegal multibyte sequence
+2026-01-31 18:04:15,580 | INFO | harvest_etl | read_csv_file=harvest_test.csv encoding=utf-8-sig rows=2 cols=4
+2026-01-31 18:04:15,734 | INFO | harvest_etl | upserted rows=2
+2026-01-31 18:04:15,735 | INFO | harvest_etl | success csv=harvest_test.csv
+2026-01-31 18:04:15,807 | INFO | harvest_etl | refresh_mv done concurrently=True
+2026-01-31 18:04:15,807 | INFO | harvest_etl | ETL finished ok=1 ng=0

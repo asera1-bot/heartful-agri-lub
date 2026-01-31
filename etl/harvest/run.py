@@ -53,7 +53,7 @@ def run(csv_files: Iterable[Path]) -> None:
             logger.error(f"failed csv={csv_path.name} reason={e}", exc_info=True)
 
     if ng == 0 and ok > 0:
-        refresh_mv(concurrently=False)
+        refresh_mv(concurrently=True)
     else:
         logger.warning(f"mv skipped ok={ok} ng={ng}")
 

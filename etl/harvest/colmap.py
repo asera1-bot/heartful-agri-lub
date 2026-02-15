@@ -27,7 +27,7 @@ COLUMN_MAP: Dict[str, str] = {
 
 # 列名正規化
 def rename_columns(columns: List[str]) -> Dict[str, str]:
-    mapping = Dict[str, str] = {}
+    mapping: Dict[str, str] = {}
     for c in columns:
         key = str(c).strip()
         if key in COLUMN_MAP:
@@ -41,12 +41,12 @@ def normalize_values(df: pd.DataFrame) -> pd.DataFrame:
     # 日付:YYYY/DD/MM → YYYY-MM-DD
     if "harvest_date" in df.columns:
         s = df["harvest_date"].astype(str).str.strip()
-        dt = pd.to_datetime(s, error="coerce", infer_datetime_format=True)
-        df["harvest_date"] = strftiime("%Y-%m-%d") # Nat is NaN
+        dt = pd.to_datetime(s, errors="coerce", yearfirst=True)
+        df["harvest_date"] = dt.dt.strftime("%Y-%m-%d") # Nat is NaN
 
     # 数値：文字列　→　数値（失敗したら NaN）
     if "amount_g" in df.columns:
-        df["amount_g"] = pd.to_numeric(df["amount_g"], error="coerce")
+        df["amount_g"] = pd.to_numeric(df["amount_g"], errors="coerce")
 
     # 文字列：前後空白除去
     for col in ("company", "crop"):
@@ -64,5 +64,5 @@ def _row_hash(row: dict) -> str:
     s = json.dumps(payload, ensure_ascii=False, sort_keys=True, default=str)
     return hashlib.sha256(s.encode("utf-8")).hexdigest()
 
-if all(c in df.columns for c in ("harvest_date", "company", "crop", "amount_g")):
-    df["row_hash"] = df.apply(lamda r: _row_hash(r.to_dict()), axis=1)
+    if all(c in df.columns for c in ("harvest_date", "company", "crop", "amount_g")):
+        df["row_hash"] = df.apply(lambda r: _row_hash(r.to_dict()), axis=1)

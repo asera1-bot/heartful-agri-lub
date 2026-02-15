@@ -19,6 +19,7 @@ services:
     volumes:
       - ./:/app
       - ./data:/data
+      - ./csv:/mnt/csv
     working_dir: /app
     command: ["bash", "-lc", "sleep infinity"]
 

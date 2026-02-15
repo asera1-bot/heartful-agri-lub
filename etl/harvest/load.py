@@ -68,41 +68,37 @@ def _get_quarantine_table(engine: Engine) -> Table:
     return Table("harvest_quarantine", md, autoload_with=engine)
 
 def load_quarantine_rows(
-    quarantine_rows: Iterable[Any],
-    *,
-    source_file: Optional[str] = None,) -> None:
-    
-    rows = []
-    for q in quarantine_rows:
-        # q.raw is dict
-        rows.appents(
-            {
-                "harvest_date": q.raw.get("harvest_date"),
-                "company": q.raw.get("company"),
-                "crop": q.raw.get("crop"),
-                "house": q.raw.get("house"),
-                "qty_g": q.raw.get("amount_g"),     # schema is amount_g, DB is qty_g
-                "reason": q.reason,
-                "detail": q.details,
-                "raw_payload": q.raw,
-                "row_hash": q.raw.get("row_hash"),
-                "source_file": source_file,
-                "source_row_num": getattr(q, "idx", None),
-                "resolved"; False,
-                "assigned_batch_no": None,
-                "resolved_at": None,
-            }
-        )
-
-    if not rows:
+    quarantine_rows, *, source_file: str | None = None,) -> None:
+    if not quarantine_rows:
         logger.info("quarantine load skipped: rows is empty")
         return
 
     engine = _get_engine()
     hq = _get_quarantine_table(engine)
 
-    stmt = insert(hq).values(rows)
+    rows = []
+    for q in quarantine_rows:
+        # q.raw is dict
+        rows.append(
+            {
+                "harvest_date": raw.get("harvest_date"),
+                "company": raw.get("company"),
+                "crop": raw.get("crop"),
+                "house": raw.get("house"),
+                "qty_g": raw.get("amount_g"),     # schema is amount_g, DB is qty_g
+                "reason": q.reason,
+                "detail": q.details,
+                "raw_payload": raw,
+                "row_hash": raw.get("row_hash"),
+                "source_file": source_file,
+                "source_row_num": q.idx,
+                "resolved": False,
+                "assigned_batch_no": None,
+                "resolved_at": None,
+            }
+        )
 
+    stmt = insert(hq).values(rows)
     with engine.begin() as conn:
         conn.execute(stmt)
 

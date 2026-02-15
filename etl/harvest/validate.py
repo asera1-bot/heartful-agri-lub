@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Any
-from pandas as pd
+import pandas as pd
 from pydantic import ValidationError
 from etl.harvest.schema import HarvestCsvRow
 from etl.common.logging import setup_logger
@@ -16,23 +16,25 @@ class QuarantineRow:
     details: dict[str, Any]     # error text etc
     raw: dict[str, Any]         # original date
 
-def validate_rows(df) -> tuple[list[HarvestCsvRow], list[QuarantineRow]];
+def validate_rows(df: pd.DataFrame) -> tuple[list[HarvestCsvRow], list[QuarantineRow]]:
     ok: list[HarvestCsvRow] = []
     ng: list[QuarantineRow] = []
 
     records = df.to_dict(orient="records")
-    for i, rec in enumerate("records")):
+    for i, rec in enumerate(records):
+        if not isinstance(rec, dict):
+            raise TypeError(f"records is not dict idx={i} type={type(rec)} value={rec!r}")
         try:
             # pydanticモデルでバリデーション
             ok.append(HarvestCsvRow(**rec))
         except ValidationError as e:
-            logger.warning(f"quarantine idx={i} reason=contrant_violation err={e}")
             ng.append(
                 QuarantineRow(
                     idx=i,
-                    reason="constraint_violation",
-                    details={"error": e.errors()},
+                    reason="contract_violation",
+                    details={"errors": e.errors()},
                     raw=rec,
                 )
             )
+    logger.info(f"validate done ok={len(ok)} quarantine={len(ng)}")
     return ok, ng

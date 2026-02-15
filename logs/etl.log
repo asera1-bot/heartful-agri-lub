@@ -1,0 +1,370 @@
+2026-02-15 14:06:57,527 | INFO | harvet_etl | start csv=test.csv
+2026-02-15 14:06:59,528 | ERROR | harvet_etl | failed vsv=test.csv reason=/mnt/csv/test.csv
+Traceback (most recent call last):
+  File "/app/etl/harvest/run.py", line 53, in run
+    with_retry(process)
+  File "/app/etl/common/retry.py", line 6, in with_retry
+    return func()
+           ^^^^^^
+  File "/app/etl/harvest/run.py", line 30, in process
+    df = extract_csv(csv_path)
+         ^^^^^^^^^^^^^^^^^^^^^
+  File "/app/etl/harvest/extract.py", line 47, in extract_csv
+    raise FileNotFoundError(str(path))
+FileNotFoundError: /mnt/csv/test.csv
+2026-02-15 14:07:59,146 | INFO | harvet_etl | start csv=test.csv
+2026-02-15 14:08:01,148 | ERROR | harvet_etl | failed vsv=test.csv reason=/mnt/csv/test.csv
+Traceback (most recent call last):
+  File "/app/etl/harvest/run.py", line 53, in run
+    with_retry(process)
+  File "/app/etl/common/retry.py", line 6, in with_retry
+    return func()
+           ^^^^^^
+  File "/app/etl/harvest/run.py", line 30, in process
+    df = extract_csv(csv_path)
+         ^^^^^^^^^^^^^^^^^^^^^
+  File "/app/etl/harvest/extract.py", line 47, in extract_csv
+    raise FileNotFoundError(str(path))
+FileNotFoundError: /mnt/csv/test.csv
+2026-02-15 14:08:01,150 | INFO | harvet_etl | ETL finished ok=0 ng=1
+2026-02-15 14:16:02,969 | INFO | harvet_etl | start csv=test.csv
+2026-02-15 14:16:04,971 | ERROR | harvet_etl | failed vsv=test.csv reason=/mnt/csv/test.csv
+Traceback (most recent call last):
+  File "/app/etl/harvest/run.py", line 53, in run
+    with_retry(process)
+  File "/app/etl/common/retry.py", line 6, in with_retry
+    return func()
+           ^^^^^^
+  File "/app/etl/harvest/run.py", line 30, in process
+    df = extract_csv(csv_path)
+         ^^^^^^^^^^^^^^^^^^^^^
+  File "/app/etl/harvest/extract.py", line 47, in extract_csv
+    raise FileNotFoundError(str(path))
+FileNotFoundError: /mnt/csv/test.csv
+2026-02-15 14:16:04,973 | INFO | harvet_etl | ETL finished ok=0 ng=1
+2026-02-15 14:22:16,926 | INFO | harvet_etl | start csv=test.csv
+2026-02-15 14:22:16,943 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=cp932 reason='cp932' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:22:16,944 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=shift_jis reason='shift_jis' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:22:16,954 | INFO | harvest_etl | read_csv_file=test.csv encoding=utf-8-sig rows=2 cols=4
+2026-02-15 14:22:17,956 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=cp932 reason='cp932' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:22:17,957 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=shift_jis reason='shift_jis' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:22:17,961 | INFO | harvest_etl | read_csv_file=test.csv encoding=utf-8-sig rows=2 cols=4
+2026-02-15 14:22:18,963 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=cp932 reason='cp932' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:22:18,964 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=shift_jis reason='shift_jis' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:22:18,967 | INFO | harvest_etl | read_csv_file=test.csv encoding=utf-8-sig rows=2 cols=4
+2026-02-15 14:22:18,968 | ERROR | harvet_etl | failed vsv=test.csv reason=name 'rename_colmuns' is not defined
+Traceback (most recent call last):
+  File "/app/etl/harvest/run.py", line 53, in run
+    with_retry(process)
+  File "/app/etl/common/retry.py", line 6, in with_retry
+    return func()
+           ^^^^^^
+  File "/app/etl/harvest/run.py", line 35, in process
+    df = df.rename(colmap=rename_colmuns(list(df.colmuns)))
+                          ^^^^^^^^^^^^^^
+NameError: name 'rename_colmuns' is not defined. Did you mean: 'rename_columns'?
+2026-02-15 14:22:18,970 | INFO | harvet_etl | ETL finished ok=0 ng=1
+2026-02-15 14:22:44,201 | INFO | harvet_etl | start csv=test.csv
+2026-02-15 14:22:44,202 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=cp932 reason='cp932' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:22:44,203 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=shift_jis reason='shift_jis' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:22:44,205 | INFO | harvest_etl | read_csv_file=test.csv encoding=utf-8-sig rows=2 cols=4
+2026-02-15 14:22:45,207 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=cp932 reason='cp932' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:22:45,208 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=shift_jis reason='shift_jis' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:22:45,212 | INFO | harvest_etl | read_csv_file=test.csv encoding=utf-8-sig rows=2 cols=4
+2026-02-15 14:22:46,213 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=cp932 reason='cp932' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:22:46,215 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=shift_jis reason='shift_jis' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:22:46,218 | INFO | harvest_etl | read_csv_file=test.csv encoding=utf-8-sig rows=2 cols=4
+2026-02-15 14:22:46,218 | ERROR | harvet_etl | failed vsv=test.csv reason='DataFrame' object has no attribute 'colmuns'
+Traceback (most recent call last):
+  File "/app/etl/harvest/run.py", line 53, in run
+    with_retry(process)
+  File "/app/etl/common/retry.py", line 6, in with_retry
+    return func()
+           ^^^^^^
+  File "/app/etl/harvest/run.py", line 35, in process
+    df = df.rename(colmap=rename_columns(list(df.colmuns)))
+                                              ^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pandas/core/generic.py", line 6206, in __getattr__
+    return object.__getattribute__(self, name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'DataFrame' object has no attribute 'colmuns'. Did you mean: 'columns'?
+2026-02-15 14:22:46,231 | INFO | harvet_etl | ETL finished ok=0 ng=1
+2026-02-15 14:23:32,060 | INFO | harvet_etl | start csv=test.csv
+2026-02-15 14:23:32,062 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=cp932 reason='cp932' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:23:32,063 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=shift_jis reason='shift_jis' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:23:32,066 | INFO | harvest_etl | read_csv_file=test.csv encoding=utf-8-sig rows=2 cols=4
+2026-02-15 14:23:33,068 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=cp932 reason='cp932' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:23:33,069 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=shift_jis reason='shift_jis' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:23:33,071 | INFO | harvest_etl | read_csv_file=test.csv encoding=utf-8-sig rows=2 cols=4
+2026-02-15 14:23:34,073 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=cp932 reason='cp932' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:23:34,074 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=shift_jis reason='shift_jis' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:23:34,077 | INFO | harvest_etl | read_csv_file=test.csv encoding=utf-8-sig rows=2 cols=4
+2026-02-15 14:23:34,078 | ERROR | harvet_etl | failed vsv=test.csv reason='_SpecialGenericAlias' object does not support item assignment
+Traceback (most recent call last):
+  File "/app/etl/harvest/run.py", line 53, in run
+    with_retry(process)
+  File "/app/etl/common/retry.py", line 6, in with_retry
+    return func()
+           ^^^^^^
+  File "/app/etl/harvest/run.py", line 35, in process
+    df = df.rename(colmap=rename_columns(list(df.columns)))
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/etl/harvest/colmap.py", line 30, in rename_columns
+    mapping = Dict[str, str] = {}
+              ~~~~^^^^^^^^^^
+TypeError: '_SpecialGenericAlias' object does not support item assignment
+2026-02-15 14:23:34,079 | INFO | harvet_etl | ETL finished ok=0 ng=1
+2026-02-15 14:24:18,435 | INFO | harvet_etl | start csv=test.csv
+2026-02-15 14:24:18,437 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=cp932 reason='cp932' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:24:18,438 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=shift_jis reason='shift_jis' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:24:18,440 | INFO | harvest_etl | read_csv_file=test.csv encoding=utf-8-sig rows=2 cols=4
+2026-02-15 14:24:19,442 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=cp932 reason='cp932' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:24:19,443 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=shift_jis reason='shift_jis' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:24:19,446 | INFO | harvest_etl | read_csv_file=test.csv encoding=utf-8-sig rows=2 cols=4
+2026-02-15 14:24:20,448 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=cp932 reason='cp932' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:24:20,450 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=shift_jis reason='shift_jis' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:24:20,451 | INFO | harvest_etl | read_csv_file=test.csv encoding=utf-8-sig rows=2 cols=4
+2026-02-15 14:24:20,452 | ERROR | harvet_etl | failed vsv=test.csv reason='_SpecialGenericAlias' object does not support item assignment
+Traceback (most recent call last):
+  File "/app/etl/harvest/run.py", line 53, in run
+    with_retry(process)
+  File "/app/etl/common/retry.py", line 6, in with_retry
+    return func()
+           ^^^^^^
+  File "/app/etl/harvest/run.py", line 35, in process
+    df = df.rename(colmap=rename_columns(list(df.columns)))
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/etl/harvest/colmap.py", line 30, in rename_columns
+    mapping = Dict[str] = {}
+              ~~~~^^^^^
+TypeError: '_SpecialGenericAlias' object does not support item assignment
+2026-02-15 14:24:20,453 | INFO | harvet_etl | ETL finished ok=0 ng=1
+2026-02-15 14:25:28,395 | INFO | harvet_etl | start csv=test.csv
+2026-02-15 14:25:28,397 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=cp932 reason='cp932' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:25:28,398 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=shift_jis reason='shift_jis' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:25:28,400 | INFO | harvest_etl | read_csv_file=test.csv encoding=utf-8-sig rows=2 cols=4
+2026-02-15 14:25:29,403 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=cp932 reason='cp932' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:25:29,404 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=shift_jis reason='shift_jis' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:25:29,407 | INFO | harvest_etl | read_csv_file=test.csv encoding=utf-8-sig rows=2 cols=4
+2026-02-15 14:25:30,409 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=cp932 reason='cp932' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:25:30,411 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=shift_jis reason='shift_jis' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:25:30,413 | INFO | harvest_etl | read_csv_file=test.csv encoding=utf-8-sig rows=2 cols=4
+2026-02-15 14:25:30,414 | ERROR | harvet_etl | failed vsv=test.csv reason=DataFrame.rename() got an unexpected keyword argument 'colmap'
+Traceback (most recent call last):
+  File "/app/etl/harvest/run.py", line 53, in run
+    with_retry(process)
+  File "/app/etl/common/retry.py", line 6, in with_retry
+    return func()
+           ^^^^^^
+  File "/app/etl/harvest/run.py", line 35, in process
+    df = df.rename(colmap=rename_columns(list(df.columns)))
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: DataFrame.rename() got an unexpected keyword argument 'colmap'
+2026-02-15 14:25:30,415 | INFO | harvet_etl | ETL finished ok=0 ng=1
+2026-02-15 14:26:47,256 | INFO | harvet_etl | start csv=test.csv
+2026-02-15 14:26:47,258 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=cp932 reason='cp932' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:26:47,259 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=shift_jis reason='shift_jis' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:26:47,261 | INFO | harvest_etl | read_csv_file=test.csv encoding=utf-8-sig rows=2 cols=4
+2026-02-15 14:26:48,263 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=cp932 reason='cp932' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:26:48,264 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=shift_jis reason='shift_jis' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:26:48,267 | INFO | harvest_etl | read_csv_file=test.csv encoding=utf-8-sig rows=2 cols=4
+2026-02-15 14:26:49,269 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=cp932 reason='cp932' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:26:49,270 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=shift_jis reason='shift_jis' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:26:49,273 | INFO | harvest_etl | read_csv_file=test.csv encoding=utf-8-sig rows=2 cols=4
+2026-02-15 14:26:49,273 | ERROR | harvet_etl | failed vsv=test.csv reason=DataFrame.rename() got an unexpected keyword argument 'colmumns'
+Traceback (most recent call last):
+  File "/app/etl/harvest/run.py", line 53, in run
+    with_retry(process)
+  File "/app/etl/common/retry.py", line 6, in with_retry
+    return func()
+           ^^^^^^
+  File "/app/etl/harvest/run.py", line 35, in process
+    df = df.rename(colmumns=rename_columns(list(df.columns)))
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: DataFrame.rename() got an unexpected keyword argument 'colmumns'
+2026-02-15 14:26:49,274 | INFO | harvet_etl | ETL finished ok=0 ng=1
+2026-02-15 14:27:08,551 | INFO | harvet_etl | start csv=test.csv
+2026-02-15 14:27:08,553 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=cp932 reason='cp932' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:27:08,554 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=shift_jis reason='shift_jis' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:27:08,556 | INFO | harvest_etl | read_csv_file=test.csv encoding=utf-8-sig rows=2 cols=4
+2026-02-15 14:27:09,562 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=cp932 reason='cp932' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:27:09,564 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=shift_jis reason='shift_jis' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:27:09,567 | INFO | harvest_etl | read_csv_file=test.csv encoding=utf-8-sig rows=2 cols=4
+2026-02-15 14:27:10,570 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=cp932 reason='cp932' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:27:10,571 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=shift_jis reason='shift_jis' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:27:10,574 | INFO | harvest_etl | read_csv_file=test.csv encoding=utf-8-sig rows=2 cols=4
+2026-02-15 14:27:10,576 | ERROR | harvet_etl | failed vsv=test.csv reason=to_datetime() got an unexpected keyword argument 'error'
+Traceback (most recent call last):
+  File "/app/etl/harvest/run.py", line 53, in run
+    with_retry(process)
+  File "/app/etl/common/retry.py", line 6, in with_retry
+    return func()
+           ^^^^^^
+  File "/app/etl/harvest/run.py", line 36, in process
+    df = normalize_values(df)
+         ^^^^^^^^^^^^^^^^^^^^
+  File "/app/etl/harvest/colmap.py", line 44, in normalize_values
+    dt = pd.to_datetime(s, error="coerce", infer_datetime_format=True)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: to_datetime() got an unexpected keyword argument 'error'
+2026-02-15 14:27:10,577 | INFO | harvet_etl | ETL finished ok=0 ng=1
+2026-02-15 14:28:32,739 | INFO | harvet_etl | start csv=test.csv
+2026-02-15 14:28:32,741 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=cp932 reason='cp932' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:28:32,741 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=shift_jis reason='shift_jis' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:28:32,743 | INFO | harvest_etl | read_csv_file=test.csv encoding=utf-8-sig rows=2 cols=4
+2026-02-15 14:28:33,747 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=cp932 reason='cp932' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:28:33,749 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=shift_jis reason='shift_jis' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:28:33,752 | INFO | harvest_etl | read_csv_file=test.csv encoding=utf-8-sig rows=2 cols=4
+2026-02-15 14:28:34,755 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=cp932 reason='cp932' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:28:34,756 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=shift_jis reason='shift_jis' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:28:34,759 | INFO | harvest_etl | read_csv_file=test.csv encoding=utf-8-sig rows=2 cols=4
+2026-02-15 14:28:34,760 | ERROR | harvet_etl | failed vsv=test.csv reason=to_datetime() got an unexpected keyword argument 'infer_datetime_format'
+Traceback (most recent call last):
+  File "/app/etl/harvest/run.py", line 53, in run
+    with_retry(process)
+  File "/app/etl/common/retry.py", line 6, in with_retry
+    return func()
+           ^^^^^^
+  File "/app/etl/harvest/run.py", line 36, in process
+    df = normalize_values(df)
+         ^^^^^^^^^^^^^^^^^^^^
+  File "/app/etl/harvest/colmap.py", line 44, in normalize_values
+    dt = pd.to_datetime(s, errors="coerce", infer_datetime_format=True)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: to_datetime() got an unexpected keyword argument 'infer_datetime_format'
+2026-02-15 14:28:34,761 | INFO | harvet_etl | ETL finished ok=0 ng=1
+2026-02-15 14:32:15,707 | INFO | harvet_etl | start csv=test.csv
+2026-02-15 14:32:15,708 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=cp932 reason='cp932' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:32:15,709 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=shift_jis reason='shift_jis' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:32:15,712 | INFO | harvest_etl | read_csv_file=test.csv encoding=utf-8-sig rows=2 cols=4
+2026-02-15 14:32:16,715 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=cp932 reason='cp932' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:32:16,717 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=shift_jis reason='shift_jis' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:32:16,719 | INFO | harvest_etl | read_csv_file=test.csv encoding=utf-8-sig rows=2 cols=4
+2026-02-15 14:32:17,722 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=cp932 reason='cp932' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:32:17,723 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=shift_jis reason='shift_jis' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:32:17,726 | INFO | harvest_etl | read_csv_file=test.csv encoding=utf-8-sig rows=2 cols=4
+2026-02-15 14:32:17,728 | ERROR | harvet_etl | failed vsv=test.csv reason=to_datetime() got an unexpected keyword argument 'uearfirst'
+Traceback (most recent call last):
+  File "/app/etl/harvest/run.py", line 53, in run
+    with_retry(process)
+  File "/app/etl/common/retry.py", line 6, in with_retry
+    return func()
+           ^^^^^^
+  File "/app/etl/harvest/run.py", line 36, in process
+    df = normalize_values(df)
+         ^^^^^^^^^^^^^^^^^^^^
+  File "/app/etl/harvest/colmap.py", line 44, in normalize_values
+    dt = pd.to_datetime(s, errors="coerce", uearfirst=True)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: to_datetime() got an unexpected keyword argument 'uearfirst'
+2026-02-15 14:32:17,729 | INFO | harvet_etl | ETL finished ok=0 ng=1
+2026-02-15 14:32:35,311 | INFO | harvet_etl | start csv=test.csv
+2026-02-15 14:32:35,313 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=cp932 reason='cp932' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:32:35,314 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=shift_jis reason='shift_jis' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:32:35,316 | INFO | harvest_etl | read_csv_file=test.csv encoding=utf-8-sig rows=2 cols=4
+2026-02-15 14:32:36,322 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=cp932 reason='cp932' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:32:36,323 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=shift_jis reason='shift_jis' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:32:36,326 | INFO | harvest_etl | read_csv_file=test.csv encoding=utf-8-sig rows=2 cols=4
+2026-02-15 14:32:37,330 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=cp932 reason='cp932' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:32:37,331 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=shift_jis reason='shift_jis' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:32:37,334 | INFO | harvest_etl | read_csv_file=test.csv encoding=utf-8-sig rows=2 cols=4
+2026-02-15 14:32:37,337 | ERROR | harvet_etl | failed vsv=test.csv reason=name 'strftiime' is not defined
+Traceback (most recent call last):
+  File "/app/etl/harvest/run.py", line 53, in run
+    with_retry(process)
+  File "/app/etl/common/retry.py", line 6, in with_retry
+    return func()
+           ^^^^^^
+  File "/app/etl/harvest/run.py", line 36, in process
+    df = normalize_values(df)
+         ^^^^^^^^^^^^^^^^^^^^
+  File "/app/etl/harvest/colmap.py", line 45, in normalize_values
+    df["harvest_date"] = strftiime("%Y-%m-%d") # Nat is NaN
+                         ^^^^^^^^^
+NameError: name 'strftiime' is not defined
+2026-02-15 14:32:37,342 | INFO | harvet_etl | ETL finished ok=0 ng=1
+2026-02-15 14:32:59,852 | INFO | harvet_etl | start csv=test.csv
+2026-02-15 14:32:59,854 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=cp932 reason='cp932' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:32:59,855 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=shift_jis reason='shift_jis' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:32:59,857 | INFO | harvest_etl | read_csv_file=test.csv encoding=utf-8-sig rows=2 cols=4
+2026-02-15 14:33:00,864 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=cp932 reason='cp932' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:33:00,865 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=shift_jis reason='shift_jis' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:33:00,869 | INFO | harvest_etl | read_csv_file=test.csv encoding=utf-8-sig rows=2 cols=4
+2026-02-15 14:33:01,872 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=cp932 reason='cp932' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:33:01,873 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=shift_jis reason='shift_jis' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:33:01,877 | INFO | harvest_etl | read_csv_file=test.csv encoding=utf-8-sig rows=2 cols=4
+2026-02-15 14:33:01,878 | ERROR | harvet_etl | failed vsv=test.csv reason=name 'strftime' is not defined
+Traceback (most recent call last):
+  File "/app/etl/harvest/run.py", line 53, in run
+    with_retry(process)
+  File "/app/etl/common/retry.py", line 6, in with_retry
+    return func()
+           ^^^^^^
+  File "/app/etl/harvest/run.py", line 36, in process
+    df = normalize_values(df)
+         ^^^^^^^^^^^^^^^^^^^^
+  File "/app/etl/harvest/colmap.py", line 45, in normalize_values
+    df["harvest_date"] = strftime("%Y-%m-%d") # Nat is NaN
+                         ^^^^^^^^
+NameError: name 'strftime' is not defined
+2026-02-15 14:33:01,882 | INFO | harvet_etl | ETL finished ok=0 ng=1
+2026-02-15 14:35:21,540 | INFO | harvet_etl | start csv=test.csv
+2026-02-15 14:35:21,542 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=cp932 reason='cp932' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:35:21,543 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=shift_jis reason='shift_jis' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:35:21,545 | INFO | harvest_etl | read_csv_file=test.csv encoding=utf-8-sig rows=2 cols=4
+2026-02-15 14:35:22,551 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=cp932 reason='cp932' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:35:22,552 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=shift_jis reason='shift_jis' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:35:22,555 | INFO | harvest_etl | read_csv_file=test.csv encoding=utf-8-sig rows=2 cols=4
+2026-02-15 14:35:23,559 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=cp932 reason='cp932' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:35:23,560 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=shift_jis reason='shift_jis' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:35:23,563 | INFO | harvest_etl | read_csv_file=test.csv encoding=utf-8-sig rows=2 cols=4
+2026-02-15 14:35:23,566 | ERROR | harvet_etl | failed vsv=test.csv reason=to_numeric() got an unexpected keyword argument 'error'
+Traceback (most recent call last):
+  File "/app/etl/harvest/run.py", line 53, in run
+    with_retry(process)
+  File "/app/etl/common/retry.py", line 6, in with_retry
+    return func()
+           ^^^^^^
+  File "/app/etl/harvest/run.py", line 36, in process
+    df = normalize_values(df)
+         ^^^^^^^^^^^^^^^^^^^^
+  File "/app/etl/harvest/colmap.py", line 49, in normalize_values
+    df["amount_g"] = pd.to_numeric(df["amount_g"], error="coerce")
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: to_numeric() got an unexpected keyword argument 'error'
+2026-02-15 14:35:23,568 | INFO | harvet_etl | ETL finished ok=0 ng=1
+2026-02-15 14:35:55,026 | INFO | harvet_etl | start csv=test.csv
+2026-02-15 14:35:55,028 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=cp932 reason='cp932' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:35:55,029 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=shift_jis reason='shift_jis' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:35:55,031 | INFO | harvest_etl | read_csv_file=test.csv encoding=utf-8-sig rows=2 cols=4
+2026-02-15 14:35:56,041 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=cp932 reason='cp932' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:35:56,042 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=shift_jis reason='shift_jis' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:35:56,046 | INFO | harvest_etl | read_csv_file=test.csv encoding=utf-8-sig rows=2 cols=4
+2026-02-15 14:35:57,051 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=cp932 reason='cp932' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:35:57,052 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=shift_jis reason='shift_jis' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:35:57,055 | INFO | harvest_etl | read_csv_file=test.csv encoding=utf-8-sig rows=2 cols=4
+2026-02-15 14:35:57,059 | ERROR | harvet_etl | failed vsv=test.csv reason=etl.harvest.schema.HarvestCsvRow() argument after ** must be a mapping, not str
+Traceback (most recent call last):
+  File "/app/etl/harvest/run.py", line 53, in run
+    with_retry(process)
+  File "/app/etl/common/retry.py", line 6, in with_retry
+    return func()
+           ^^^^^^
+  File "/app/etl/harvest/run.py", line 39, in process
+    ok_rows, quarantine_rows = validate_rows(df) # validate.pyをtuple返却に変更する前提
+                               ^^^^^^^^^^^^^^^^^
+  File "/app/etl/harvest/validate.py", line 27, in validate_rows
+    ok.append(HarvestCsvRow(**rec))
+              ^^^^^^^^^^^^^^^^^^^^
+TypeError: etl.harvest.schema.HarvestCsvRow() argument after ** must be a mapping, not str
+2026-02-15 14:35:57,063 | INFO | harvet_etl | ETL finished ok=0 ng=1
+2026-02-15 14:41:34,476 | INFO | harvet_etl | start csv=test.csv
+2026-02-15 14:41:34,478 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=cp932 reason='cp932' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:41:34,479 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=shift_jis reason='shift_jis' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-15 14:41:34,480 | INFO | harvest_etl | read_csv_file=test.csv encoding=utf-8-sig rows=2 cols=4
+2026-02-15 14:41:34,490 | INFO | harvest_etl | validate done ok=2 quarantine=0
+2026-02-15 14:41:34,490 | INFO | harvest_etl | quarantine load skipped: rows is empty
+2026-02-15 14:41:34,490 | INFO | harvet_etl | rows summary csv=test.csv df=2ok=2 quarantine=0
+2026-02-15 14:41:34,636 | INFO | harvest_etl | upserted rows=2
+2026-02-15 14:41:34,636 | INFO | harvet_etl | success csv=test.csv
+2026-02-15 14:41:34,636 | INFO | harvet_etl | ETL finished ok=1 ng=0

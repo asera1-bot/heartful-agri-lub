@@ -49,6 +49,7 @@ def extract_csv(path: str | Path) -> pd.DataFrame:
     if path.stat().st_size == 0:
         #　空ファイルはCSV単位でスキップされるべき
         logger.warning(f"empty file skipped file={path.name}")
+        return pd.DataFrame()
 
     # 重要:dtypeは固定しない（文字列混在があると事故る）
     # na_filter=False　で文字列を　NaN　にしない（現場はCSVは空欄多い想定）

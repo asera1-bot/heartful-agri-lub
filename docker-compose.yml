@@ -18,7 +18,7 @@ services:
     env_file: [.env]
     volumes:
       - ./:/app
-      - /tmp:/data
+      - ./data:/data
     working_dir: /app
     command: ["bash", "-lc", "sleep infinity"]
 

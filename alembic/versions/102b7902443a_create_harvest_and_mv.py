@@ -1,7 +1,7 @@
 """create harvest and mv
 
 Revision ID: 102b7902443a
-Revises: 
+Revises: "102b7902443a" 
 Create Date: 2026-02-07 20:54:22.467509
 
 """
@@ -14,7 +14,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '0001'
+revision = "102b7902443a"
 down_revision = None
 branch_labels = None
 depends_on = None

@@ -20,29 +20,27 @@ def _get_engine() -> Engine:
     return create_engine(url, future=True, pool_pre_ping=True)
 
 def _get_harvest_table(engine: Engine) -> Table:
-    """
-    既存DBの　harvest テーブルをリフレクションで取得する。
-    Alembic管理でも、ETL単体でも動く。
-    """
     md = MetaData()
-    return Table("harvest", md, autoload_with=engine)
+    return Table("harvest_fact", md, autoload_with=engine)
 
-def load_rows(rows: List[Dict[str, Any]]) -> None:
-    """
-    rows 例:
-    {"company": "...", "crop":"...", "month":"2026-01", "total_kg":12.3}
-    """
+def load_fact_rows(rows: List[Dict[str, Any]]) -> None:
     if not rows:
         logger.info("load skipped: rows is empty")
         return
 
     engine = _get_engine()
-    harvest = _get_harvest_table(engine)
+    harvest = _get_harvest_fact_table(engine)
 
     stmt = insert(harvest).values(rows)
 
     # UPSERTの自然キ-
-    conflict_cols = ["company", "crop", "month"]
+    conflict_cols = ["harvest_date", "company", "crop", "house"]
+    stmt = stmt.on_conflict_do_nothing(index_elements=conflict_cols)
+
+    with engine.begin() as conn:
+        conn.execute(stmt)
+    
+    logger.info(f"inserted fact rows={len(rows)} (do_nothing on conflict)")
 
     # 更新対象：キー以外
     update_cols = {
@@ -79,20 +77,21 @@ def load_quarantine_rows(
     rows = []
     for q in quarantine_rows:
         # q.raw is dict
+        raw = getattr(q, "raw", None) or {}
         rows.append(
             {
                 "harvest_date": raw.get("harvest_date"),
                 "company": raw.get("company"),
                 "crop": raw.get("crop"),
                 "house": raw.get("house"),
-                "qty_g": raw.get("amount_g"),     # schema is amount_g, DB is qty_g
-                "reason": q.reason,
-                "detail": q.details,
+                "qty_g": raw.get("qty_g") if "qty_g" in raw else raw.get("amount_g"),   # schema is amount_g, DB is qty_g
+                "reason": getattr(q, "reason", "unknown"),
+                "detail": getattr(q, "details", None),
                 "raw_payload": raw,
                 "row_hash": raw.get("row_hash"),
                 "source_file": source_file,
-                "source_row_num": q.idx,
-                "resolved": False,
+                "source_row_num": getattr(q, "idx", None),
+                "resoluved": False,
                 "assigned_batch_no": None,
                 "resolved_at": None,
             }

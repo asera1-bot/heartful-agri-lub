@@ -10,12 +10,13 @@ from etl.harvest.extract import extract_csv
 from etl.harvest.colmap import rename_columns, normalize_values
 from etl.harvest.validate import validate_rows
 from etl.harvest.transform import transform_rows
-from etl.harvest.load import load_rows, load_quarantine_rows
+from etl.harvest.trandform_fact import transform_fact_rows
+from etl.harvest.load import load_rows, load_quarantine_rows, load_fact_rows
 #from etl.harvest.duplicate import detect_duplicates 追加
 #from etl.harvest.load_fact import load_fact_rows 追加
 #from etl.harvest.load_quarantine import load_quarantine_rows 追加
 
-logger = setup_logger("harvet_etl")
+logger = setup_logger("harvest_etl")
 
 def run(csv_files: Iterable[Path]) -> None:
     ok_files = 0
@@ -46,6 +47,15 @@ def run(csv_files: Iterable[Path]) -> None:
                             f"ok={len(ok_rows)} quarantine={len(quarantine_rows)}"
                 )
 
+                # 5) fact load （暫定house注入）
+                fact_rows = transform_fact_rows(
+                    ok_rows,
+                    house="A棟",
+                    source_file=csv_path.name,
+                    source_row_num_start=0,
+                )
+                load_fact_rows(fact_rows)
+
                 # 5) legacy monthly load 動作確認のために当面残す
                 monthly_rows = transform_rows(ok_rows)
                 load_rows(monthly_rows)
@@ -56,7 +66,7 @@ def run(csv_files: Iterable[Path]) -> None:
 
         except Exception as e:
             ng_files += 1
-            logger.error(f"failed vsv={csv_path.name} reason={e}", exc_info=True)
+            logger.error(f"failed csv={csv_path.name} reason={e}", exc_info=True)
 
     logger.info(f"ETL finished ok={ok_files} ng={ng_files}")
 
@@ -72,7 +82,4 @@ def run(csv_files: Iterable[Path]) -> None:
                 # 6) house解決できないものはquarantine
                 # resolved_rows, house_quarantine = resolve_house(resoluved_rows)
                 # load_quarantine_rows(house_quarantine, source_file=csv_path.name)
-
-                # 7) factへload
-                # load_fact_rows(resolved_rows, source_file=csv_path.name)
 

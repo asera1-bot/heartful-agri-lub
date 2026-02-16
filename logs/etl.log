@@ -368,3 +368,85 @@ TypeError: etl.harvest.schema.HarvestCsvRow() argument after ** must be a mappin
 2026-02-15 14:41:34,636 | INFO | harvest_etl | upserted rows=2
 2026-02-15 14:41:34,636 | INFO | harvet_etl | success csv=test.csv
 2026-02-15 14:41:34,636 | INFO | harvet_etl | ETL finished ok=1 ng=0
+2026-02-16 08:51:41,454 | INFO | harvet_etl | start csv=test.csv
+2026-02-16 08:51:43,455 | ERROR | harvet_etl | failed vsv=test.csv reason=/mnt/csv/test.csv
+Traceback (most recent call last):
+  File "/app/etl/harvest/run.py", line 53, in run
+    with_retry(process)
+  File "/app/etl/common/retry.py", line 6, in with_retry
+    return func()
+           ^^^^^^
+  File "/app/etl/harvest/run.py", line 30, in process
+    df = extract_csv(csv_path)
+         ^^^^^^^^^^^^^^^^^^^^^
+  File "/app/etl/harvest/extract.py", line 47, in extract_csv
+    raise FileNotFoundError(str(path))
+FileNotFoundError: /mnt/csv/test.csv
+2026-02-16 08:51:43,456 | INFO | harvet_etl | ETL finished ok=0 ng=1
+2026-02-16 08:55:05,132 | INFO | harvet_etl | start csv=test.csv
+2026-02-16 08:55:05,136 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=cp932 reason='cp932' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-16 08:55:05,137 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=shift_jis reason='shift_jis' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-16 08:55:05,143 | INFO | harvest_etl | read_csv_file=test.csv encoding=utf-8-sig rows=2 cols=4
+2026-02-16 08:55:05,148 | INFO | harvest_etl | validate done ok=2 quarantine=0
+2026-02-16 08:55:05,148 | INFO | harvest_etl | quarantine load skipped: rows is empty
+2026-02-16 08:55:05,148 | INFO | harvet_etl | rows summary csv=test.csv df=2ok=2 quarantine=0
+2026-02-16 08:55:06,301 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=cp932 reason='cp932' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-16 08:55:06,302 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=shift_jis reason='shift_jis' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-16 08:55:06,303 | INFO | harvest_etl | read_csv_file=test.csv encoding=utf-8-sig rows=2 cols=4
+2026-02-16 08:55:06,305 | INFO | harvest_etl | validate done ok=2 quarantine=0
+2026-02-16 08:55:06,305 | INFO | harvest_etl | quarantine load skipped: rows is empty
+2026-02-16 08:55:06,305 | INFO | harvet_etl | rows summary csv=test.csv df=2ok=2 quarantine=0
+2026-02-16 08:55:07,325 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=cp932 reason='cp932' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-16 08:55:07,326 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=shift_jis reason='shift_jis' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-16 08:55:07,327 | INFO | harvest_etl | read_csv_file=test.csv encoding=utf-8-sig rows=2 cols=4
+2026-02-16 08:55:07,329 | INFO | harvest_etl | validate done ok=2 quarantine=0
+2026-02-16 08:55:07,329 | INFO | harvest_etl | quarantine load skipped: rows is empty
+2026-02-16 08:55:07,329 | INFO | harvet_etl | rows summary csv=test.csv df=2ok=2 quarantine=0
+2026-02-16 08:55:07,348 | ERROR | harvet_etl | failed vsv=test.csv reason=harvest
+Traceback (most recent call last):
+  File "/app/etl/harvest/run.py", line 53, in run
+    with_retry(process)
+  File "/app/etl/common/retry.py", line 6, in with_retry
+    return func()
+           ^^^^^^
+  File "/app/etl/harvest/run.py", line 51, in process
+    load_rows(monthly_rows)
+  File "/app/etl/harvest/load.py", line 40, in load_rows
+    harvest = _get_harvest_table(engine)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/etl/harvest/load.py", line 28, in _get_harvest_table
+    return Table("harvest", md, autoload_with=engine)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 2, in __new__
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/util/deprecations.py", line 281, in warned
+    return fn(*args, **kwargs)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/sql/schema.py", line 429, in __new__
+    return cls._new(*args, **kw)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/sql/schema.py", line 483, in _new
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/util/langhelpers.py", line 224, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/sql/schema.py", line 479, in _new
+    table.__init__(name, metadata, *args, _no_init=False, **kw)  # type: ignore[misc] # noqa: E501
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/sql/schema.py", line 861, in __init__
+    self._autoload(
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/sql/schema.py", line 893, in _autoload
+    conn_insp.reflect_table(
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/engine/reflection.py", line 1548, in reflect_table
+    raise exc.NoSuchTableError(table_name)
+sqlalchemy.exc.NoSuchTableError: harvest
+2026-02-16 08:55:07,354 | INFO | harvet_etl | ETL finished ok=0 ng=1
+2026-02-16 09:09:05,024 | INFO | harvet_etl | start csv=test.csv
+2026-02-16 09:09:05,033 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=cp932 reason='cp932' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-16 09:09:05,033 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=shift_jis reason='shift_jis' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-16 09:09:05,043 | INFO | harvest_etl | read_csv_file=test.csv encoding=utf-8-sig rows=2 cols=4
+2026-02-16 09:09:05,050 | INFO | harvest_etl | validate done ok=2 quarantine=0
+2026-02-16 09:09:05,050 | INFO | harvest_etl | quarantine load skipped: rows is empty
+2026-02-16 09:09:05,050 | INFO | harvet_etl | rows summary csv=test.csv df=2ok=2 quarantine=0
+2026-02-16 09:09:05,171 | INFO | harvest_etl | upserted rows=2
+2026-02-16 09:09:05,171 | INFO | harvet_etl | success csv=test.csv
+2026-02-16 09:09:05,172 | INFO | harvet_etl | ETL finished ok=1 ng=0

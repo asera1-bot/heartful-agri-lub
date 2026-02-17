@@ -78,6 +78,17 @@ def load_quarantine_rows(
     for q in quarantine_rows:
         # q.raw is dict
         raw = getattr(q, "raw", None) or {}
+   
+        if isinstance(raw, dict) and "detail" in raw and "details" not in raw:
+            raw["details"] = raw["detail"]
+            raw.pop("detail", None)
+        elif isinstance(raw, dict) and "detail" in raw and "detail" in raw:
+            raw.pop("detail", None)
+            
+        details = getattr(q, "details", None)
+        if details is None and hasattr(q, "detail"):
+            details = getattr(q, "detail")
+
         rows.append(
             {
                 "harvest_date": raw.get("harvest_date"),
@@ -86,7 +97,7 @@ def load_quarantine_rows(
                 "house": raw.get("house"),
                 "qty_g": raw.get("qty_g") if "qty_g" in raw else raw.get("amount_g"),   # schema is amount_g, DB is qty_g
                 "reason": getattr(q, "reason", "unknown"),
-                "detail": getattr(q, "details", None),
+                "details": getattr(q, "details", None),
                 "raw_payload": raw,
                 "row_hash": raw.get("row_hash"),
                 "source_file": source_file,
@@ -96,6 +107,12 @@ def load_quarantine_rows(
                 "resolved_at": None,
             }
         )
+
+    allowed = {c.name for c in hq.columns}
+    for i, r in enumerate(rows):
+        extra = set(r.keys()) - allowed
+        if extra:
+            raise RuntimeError(f"quarantine row has extra keys idx={i} extra={sorted(extra)}")
 
     stmt = insert(hq).values(rows)
     with engine.begin() as conn:

@@ -30,7 +30,7 @@ def transform_fact_rows (
 
         payload = {
             "harvest_date": r.harvest_date.isoformat(),
-            "company": r.company.strip()
+            "company": r.company.strip(),
             "crop": r.crop.strip(),
             "house": house,
             "qty_g": qty_g,

@@ -1,8 +1,7 @@
 from __future__ import annotations
 
 import os
-from typing import Any, Dict, List, Iterable, Optional
-from datetime import datetime
+from typing import Any, Dict, List
 
 from sqlalchemy import create_engine, MetaData, Table
 from sqlalchemy.engine import Engine
@@ -15,38 +14,33 @@ logger = setup_logger("harvest_etl")
 def _get_engine() -> Engine:
     url = os.getenv("DATABASE_URL")
     if not url:
-        raise RuntimeError("DATABASE_URL is not set. Example: postgresql+psycopg://user:pass@host:5432/dbname")
-    # future=True　は　SQLAlchemy 1.4 +　の2.0互換
+        raise RuntimeError("DATABASE_URL is not set")
     return create_engine(url, future=True, pool_pre_ping=True)
 
-def _get_harvest_table(engine: Engine) -> Table:
+def _table(engine: Engine, name: str) -> Table:
     md = MetaData()
-    return Table("harvest_fact", md, autoload_with=engine)
+    return Table(name, md, autoload_with=engine)
 
-def load_fact_rows(rows: List[Dict[str, Any]]) -> None:
+# legacy monthly: harvest
+def load_rows(rows: List[Dict[str, Any]]) -> None:
+    """
+    rows 例:
+    {"company": "...", "crop":"...", "month":"2026-01", "total_kg":12.3}
+    """
     if not rows:
         logger.info("load skipped: rows is empty")
         return
 
     engine = _get_engine()
-    harvest = _get_harvest_fact_table(engine)
+    harvest = _table(engine, "harvest")
 
     stmt = insert(harvest).values(rows)
 
-    # UPSERTの自然キ-
-    conflict_cols = ["harvest_date", "company", "crop", "house"]
-    stmt = stmt.on_conflict_do_nothing(index_elements=conflict_cols)
-
-    with engine.begin() as conn:
-        conn.execute(stmt)
-    
-    logger.info(f"inserted fact rows={len(rows)} (do_nothing on conflict)")
-
-    # 更新対象：キー以外
+    conflict_cols = ["company", "crop", "month"]
     update_cols = {
         c.name: stmt.excluded[c.name]
         for c in harvest.columns
-        if c.name not in conflict_cols
+            if c.name not in conflict_cols
     }
 
     upsert_stmt = stmt.on_conflict_do_update(
@@ -54,65 +48,70 @@ def load_fact_rows(rows: List[Dict[str, Any]]) -> None:
         set_=update_cols,
     )
 
-    # CSV単位 transaction　は　run.py 側で包む設計もあるが、
-    # まずは　Load_rows を　“1回=1トランザクション”として安定させる
     with engine.begin() as conn:
         conn.execute(upsert_stmt)
 
     logger.info(f"upserted rows={len(rows)}")
 
-def _get_quarantine_table(engine: Engine) -> Table:
-    md = MetaData()
-    return Table("harvest_quarantine", md, autoload_with=engine)
+# fact: harvest_fact
+def load_fact_rows(rows: List[Dict[str, Any]]) -> None:
+    if not rows:
+        logger.info("fact load skipped: rows is empty")
+        return
 
-def load_quarantine_rows(
-    quarantine_rows, *, source_file: str | None = None,) -> None:
+    engine = _get_engine()
+    fact = _table(engine, "harvest_fact")
+
+    stmt = insert(fact).values(rows)
+
+    #まずは「重複はDBに任せる」最小構成（止まったら次でduplicate detectorへ）
+    with engine.begin() as conn:
+        conn.execute(stmt)
+
+    logger.info(f"inserted fact rows={len(rows)}")
+
+# quarantine: harvest_quarantine
+def load_quarantine_rows(quarantine_rows, *, source_file: str | None = None) -> None:
     if not quarantine_rows:
         logger.info("quarantine load skipped: rows is empty")
         return
 
     engine = _get_engine()
-    hq = _get_quarantine_table(engine)
+    hq = _table(engine, "harvest_quarantie")
 
     rows = []
+    allowed = {c.name for c in hq.columns}
+
     for q in quarantine_rows:
-        # q.raw is dict
         raw = getattr(q, "raw", None) or {}
-   
+
+        # raw_payload内にdetailが混ざってもDB列にださない
         if isinstance(raw, dict) and "detail" in raw and "details" not in raw:
-            raw["details"] = raw["detail"]
-            raw.pop("detail", None)
-        elif isinstance(raw, dict) and "detail" in raw and "detail" in raw:
-            raw.pop("detail", None)
-            
+            raw["details"] = raw.pop("detail")
+
         details = getattr(q, "details", None)
         if details is None and hasattr(q, "detail"):
             details = getattr(q, "detail")
 
-        rows.append(
-            {
-                "harvest_date": raw.get("harvest_date"),
-                "company": raw.get("company"),
-                "crop": raw.get("crop"),
-                "house": raw.get("house"),
-                "qty_g": raw.get("qty_g") if "qty_g" in raw else raw.get("amount_g"),   # schema is amount_g, DB is qty_g
-                "reason": getattr(q, "reason", "unknown"),
-                "details": getattr(q, "details", None),
-                "raw_payload": raw,
-                "row_hash": raw.get("row_hash"),
-                "source_file": source_file,
-                "source_row_num": getattr(q, "idx", None),
-                "resoluved": False,
-                "assigned_batch_no": None,
-                "resolved_at": None,
-            }
-        )
+        row = {
+            "harvest_date": raw.get("harvest_date"),
+            "company": raw.get("company"),
+            "crop": raw.get("crop"),
+            "house": raw.get("house"),
+            "qyt_g": raw.get("qty_g") if "qty_g" in raw else raw.get("amount_g"),
+            "reason": getattr(q, "reason", "unknown"),
+            "detalis": details,
+            "raw_payload": raw,
+            "row_hash": raw.get("row_hash"),
+            "source_file": source_file,
+            "source_row_num": getattr(q, "idx", None),
+        }
 
-    allowed = {c.name for c in hq.columns}
-    for i, r in enumerate(rows):
-        extra = set(r.keys()) - allowed
+        extra = set(row.keys()) - allowed
         if extra:
-            raise RuntimeError(f"quarantine row has extra keys idx={i} extra={sorted(extra)}")
+            raise RuntimeError(f"quarantine insert has extra keys; {sorted(extra)}")
+
+        rows.append(row)
 
     stmt = insert(hq).values(rows)
     with engine.begin() as conn:

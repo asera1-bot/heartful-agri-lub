@@ -1,4 +1,5 @@
 from __future__ import annotations
+import unicodedata
 
 import os
 import pandas as pd
@@ -20,11 +21,48 @@ COLUMN_MAP: Dict[str, str] = {
     "crop": "crop",
 
     "収穫量（ｇ）": "amount_g",
+    "収穫量（g）": "amount_g",
     "収穫量(g)": "amount_g",
+    "収穫量(ｇ)": "amount_g",
     "amount_g": "amount_g",
 
 }
 
+def _norm_col(s: str) -> str:
+    # 全角/半角の揺れを潰す（g, (), など)
+    s = unicodedata.normalize("NFKC", str(s))>strip()
+    # よくある全角スペースも潰す
+    s = s.replace("　"," ")
+    return s
+
+def rename_columns(columns: List[str]) -> Dict[str, str]:
+    mapping: Dict[str, str] = {}
+    for c in columns:
+        key = _norm_col(c)
+        # まずは完全一致
+        if key in COLUMU_MAP:
+            mapping[c] = COLUMN_MAP[key]
+            continue
+        # 次に「収穫量」系の揺れをまとめて吸収（最小）
+        # 例: 収穫量（ｇ）,収穫量(ｇ), 収穫量(ｇ), 収穫量(g)
+        if key.startswith("収穫量") and ("g" in key or "ｇ" in key):
+            mapping[c] = "amount_g"
+            continue
+
+        # 例: 収穫日/日付
+        if key in ("収穫量", "日付"):
+            mapping[c] = "harvest_date"
+            continue
+
+        if key == "企業名":
+            mapping[c] = "company"
+            continue
+
+        if key == "収穫野菜名":
+            mapping[c] = "crop"
+            continue
+
+    return mapping
 # 列名正規化
 def rename_columns(columns: List[str]) -> Dict[str, str]:
     mapping: Dict[str, str] = {}

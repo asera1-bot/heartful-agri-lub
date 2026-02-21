@@ -8,7 +8,7 @@ from etl.harvest.schema import HarvestCsvRow
 
 def _sha256(payload: dict) -> str:
     s = json.dumps(payload, ensure_ascii=False, sort_keys=True, default=str)
-    return hashlib.sha256(a.encode("utf-8")).hexdigest()
+    return hashlib.sha256(s.encode("utf-8")).hexdigest()
 
 def transform_fact_rows (
     rows: List[HarvestCsvRow],

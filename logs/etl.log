@@ -774,3 +774,165 @@ Traceback (most recent call last):
     ^^^^^^^^^
 NameError: name 'load_rows' is not defined. Did you mean: 'ok_rows'?
 2026-02-17 13:43:52,147 | INFO | harvest_etl | ETL finished ok=0 ng=1
+2026-02-21 00:25:27,395 | INFO | harvest_etl | start csv=test.csv
+2026-02-21 00:25:27,412 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=cp932 reason='cp932' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-21 00:25:27,413 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=shift_jis reason='shift_jis' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-21 00:25:27,422 | INFO | harvest_etl | read_csv_file=test.csv encoding=utf-8-sig rows=2 cols=4
+2026-02-21 00:25:27,431 | INFO | harvest_etl | validate done ok=0 quarantine=2
+2026-02-21 00:25:28,433 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=cp932 reason='cp932' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-21 00:25:28,434 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=shift_jis reason='shift_jis' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-21 00:25:28,437 | INFO | harvest_etl | read_csv_file=test.csv encoding=utf-8-sig rows=2 cols=4
+2026-02-21 00:25:28,441 | INFO | harvest_etl | validate done ok=0 quarantine=2
+2026-02-21 00:25:29,443 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=cp932 reason='cp932' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-21 00:25:29,444 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=shift_jis reason='shift_jis' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-21 00:25:29,447 | INFO | harvest_etl | read_csv_file=test.csv encoding=utf-8-sig rows=2 cols=4
+2026-02-21 00:25:29,451 | INFO | harvest_etl | validate done ok=0 quarantine=2
+2026-02-21 00:25:29,451 | ERROR | harvest_etl | failed csv=test.csv reason=name 'os' is not defined
+Traceback (most recent call last):
+  File "/app/etl/harvest/run.py", line 167, in run
+    with_retry(process)
+  File "/app/etl/common/retry.py", line 6, in with_retry
+    return func()
+           ^^^^^^
+  File "/app/etl/harvest/run.py", line 144, in process
+    load_quarantine_rows(quarantine_rows, source_file=csv_path.name)
+  File "/app/etl/harvest/run.py", line 85, in load_quarantine_rows
+    engine = _get_engine()
+             ^^^^^^^^^^^^^
+  File "/app/etl/harvest/run.py", line 22, in _get_engine
+    url = os.getenv("DATABASE_URL")
+          ^^
+NameError: name 'os' is not defined. Did you forget to import 'os'
+2026-02-21 00:25:29,454 | INFO | harvest_etl | ETL finished ok=0 ng=1
+2026-02-21 00:56:15,229 | INFO | harvest_etl | start csv=test.csv
+2026-02-21 00:56:15,243 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=cp932 reason='cp932' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-21 00:56:15,244 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=shift_jis reason='shift_jis' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-21 00:56:15,246 | INFO | harvest_etl | read_csv_file=test.csv encoding=utf-8-sig rows=2 cols=4
+2026-02-21 00:56:15,251 | INFO | harvest_etl | validate done ok=0 quarantine=2
+2026-02-21 00:56:15,251 | INFO | harvest_etl | rows summary csv=test.csv df=2 ok=0 quarantine=2
+2026-02-21 00:56:15,251 | INFO | harvest_etl | fact load skipped: rows is empty
+2026-02-21 00:56:15,251 | INFO | harvest_etl | load skipped: rows is empty
+2026-02-21 00:56:15,251 | INFO | harvest_etl | success csv=test.csv
+2026-02-21 00:56:15,251 | INFO | harvest_etl | ETL finished ok=1 ng=0
+2026-02-21 01:01:44,605 | INFO | harvest_etl | start csv=test.csv
+2026-02-21 01:01:44,607 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=cp932 reason='cp932' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-21 01:01:44,608 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=shift_jis reason='shift_jis' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-21 01:01:44,609 | INFO | harvest_etl | read_csv_file=test.csv encoding=utf-8-sig rows=2 cols=4
+2026-02-21 01:01:44,617 | INFO | harvest_etl | validate done ok=0 quarantine=2
+2026-02-21 01:01:44,617 | INFO | harvest_etl | rows summary csv=test.csv df=2 ok=0 quarantine=2
+2026-02-21 01:01:44,617 | INFO | harvest_etl | fact load skipped: rows is empty
+2026-02-21 01:01:44,617 | INFO | harvest_etl | load skipped: rows is empty
+2026-02-21 01:01:44,617 | INFO | harvest_etl | success csv=test.csv
+2026-02-21 01:01:44,617 | INFO | harvest_etl | ETL finished ok=1 ng=0
+2026-02-21 01:28:42,817 | INFO | harvest_etl | start csv=test.csv
+2026-02-21 01:28:42,818 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=cp932 reason='cp932' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-21 01:28:42,819 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=shift_jis reason='shift_jis' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-21 01:28:42,822 | INFO | harvest_etl | read_csv_file=test.csv encoding=utf-8-sig rows=2 cols=4
+2026-02-21 01:28:42,831 | INFO | harvest_etl | validate done ok=2 quarantine=0
+2026-02-21 01:28:43,832 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=cp932 reason='cp932' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-21 01:28:43,832 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=shift_jis reason='shift_jis' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-21 01:28:43,834 | INFO | harvest_etl | read_csv_file=test.csv encoding=utf-8-sig rows=2 cols=4
+2026-02-21 01:28:43,841 | INFO | harvest_etl | validate done ok=2 quarantine=0
+2026-02-21 01:28:44,842 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=cp932 reason='cp932' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-21 01:28:44,843 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=shift_jis reason='shift_jis' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-21 01:28:44,845 | INFO | harvest_etl | read_csv_file=test.csv encoding=utf-8-sig rows=2 cols=4
+2026-02-21 01:28:44,849 | INFO | harvest_etl | validate done ok=2 quarantine=0
+2026-02-21 01:28:44,849 | ERROR | harvest_etl | failed csv=test.csv reason=name 'q' is not defined
+Traceback (most recent call last):
+  File "/app/etl/harvest/run.py", line 60, in run
+    with_retry(process)
+  File "/app/etl/common/retry.py", line 6, in with_retry
+    return func()
+           ^^^^^^
+  File "/app/etl/harvest/run.py", line 37, in process
+    load_quarantine_rows(quarantine_rows, source_file=csv_path.name)
+  File "/app/etl/harvest/load.py", line 76, in load_quarantine_rows
+    raw = getattr(q, "raw", None) or {}
+                  ^
+NameError: name 'q' is not defined
+2026-02-21 01:28:44,851 | INFO | harvest_etl | ETL finished ok=0 ng=1
+2026-02-21 01:48:15,215 | INFO | harvest_etl | start csv=test.csv
+2026-02-21 01:48:15,216 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=cp932 reason='cp932' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-21 01:48:15,217 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=shift_jis reason='shift_jis' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-21 01:48:15,220 | INFO | harvest_etl | read_csv_file=test.csv encoding=utf-8-sig rows=2 cols=4
+2026-02-21 01:48:15,227 | INFO | harvest_etl | validate done ok=2 quarantine=0
+2026-02-21 01:48:15,227 | INFO | harvest_etl | quarantine load skipped: rows is empty
+2026-02-21 01:48:15,227 | INFO | harvest_etl | rows summary csv=test.csv df=2 ok=2 quarantine=0
+2026-02-21 01:48:16,229 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=cp932 reason='cp932' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-21 01:48:16,230 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=shift_jis reason='shift_jis' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-21 01:48:16,232 | INFO | harvest_etl | read_csv_file=test.csv encoding=utf-8-sig rows=2 cols=4
+2026-02-21 01:48:16,237 | INFO | harvest_etl | validate done ok=2 quarantine=0
+2026-02-21 01:48:16,238 | INFO | harvest_etl | quarantine load skipped: rows is empty
+2026-02-21 01:48:16,238 | INFO | harvest_etl | rows summary csv=test.csv df=2 ok=2 quarantine=0
+2026-02-21 01:48:17,240 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=cp932 reason='cp932' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-21 01:48:17,241 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=shift_jis reason='shift_jis' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-21 01:48:17,244 | INFO | harvest_etl | read_csv_file=test.csv encoding=utf-8-sig rows=2 cols=4
+2026-02-21 01:48:17,248 | INFO | harvest_etl | validate done ok=2 quarantine=0
+2026-02-21 01:48:17,249 | INFO | harvest_etl | quarantine load skipped: rows is empty
+2026-02-21 01:48:17,249 | INFO | harvest_etl | rows summary csv=test.csv df=2 ok=2 quarantine=0
+2026-02-21 01:48:17,249 | ERROR | harvest_etl | failed csv=test.csv reason=name 'a' is not defined
+Traceback (most recent call last):
+  File "/app/etl/harvest/run.py", line 60, in run
+    with_retry(process)
+  File "/app/etl/common/retry.py", line 6, in with_retry
+    return func()
+           ^^^^^^
+  File "/app/etl/harvest/run.py", line 48, in process
+    fact_rows = transform_fact_rows(
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/app/etl/harvest/transform_fact.py", line 40, in transform_fact_rows
+    row_hash = _sha256(payload)
+               ^^^^^^^^^^^^^^^^
+  File "/app/etl/harvest/transform_fact.py", line 11, in _sha256
+    return hashlib.sha256(a.encode("utf-8")).hexdigest()
+                          ^
+NameError: name 'a' is not defined
+2026-02-21 01:48:17,250 | INFO | harvest_etl | ETL finished ok=0 ng=1
+2026-02-21 01:48:52,819 | INFO | harvest_etl | start csv=test.csv
+2026-02-21 01:48:52,821 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=cp932 reason='cp932' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-21 01:48:52,822 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=shift_jis reason='shift_jis' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-21 01:48:52,824 | INFO | harvest_etl | read_csv_file=test.csv encoding=utf-8-sig rows=2 cols=4
+2026-02-21 01:48:52,832 | INFO | harvest_etl | validate done ok=2 quarantine=0
+2026-02-21 01:48:52,832 | INFO | harvest_etl | quarantine load skipped: rows is empty
+2026-02-21 01:48:52,832 | INFO | harvest_etl | rows summary csv=test.csv df=2 ok=2 quarantine=0
+2026-02-21 01:48:53,833 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=cp932 reason='cp932' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-21 01:48:53,834 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=shift_jis reason='shift_jis' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-21 01:48:53,836 | INFO | harvest_etl | read_csv_file=test.csv encoding=utf-8-sig rows=2 cols=4
+2026-02-21 01:48:53,842 | INFO | harvest_etl | validate done ok=2 quarantine=0
+2026-02-21 01:48:53,842 | INFO | harvest_etl | quarantine load skipped: rows is empty
+2026-02-21 01:48:53,842 | INFO | harvest_etl | rows summary csv=test.csv df=2 ok=2 quarantine=0
+2026-02-21 01:48:54,844 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=cp932 reason='cp932' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-21 01:48:54,845 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=shift_jis reason='shift_jis' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-21 01:48:54,848 | INFO | harvest_etl | read_csv_file=test.csv encoding=utf-8-sig rows=2 cols=4
+2026-02-21 01:48:54,855 | INFO | harvest_etl | validate done ok=2 quarantine=0
+2026-02-21 01:48:54,855 | INFO | harvest_etl | quarantine load skipped: rows is empty
+2026-02-21 01:48:54,855 | INFO | harvest_etl | rows summary csv=test.csv df=2 ok=2 quarantine=0
+2026-02-21 01:48:54,855 | ERROR | harvest_etl | failed csv=test.csv reason=name 'a' is not defined
+Traceback (most recent call last):
+  File "/app/etl/harvest/run.py", line 60, in run
+    with_retry(process)
+  File "/app/etl/common/retry.py", line 6, in with_retry
+    return func()
+           ^^^^^^
+  File "/app/etl/harvest/run.py", line 48, in process
+    fact_rows = transform_fact_rows(
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/app/etl/harvest/transform_fact.py", line 40, in transform_fact_rows
+    row_hash = _sha256(payload)
+               ^^^^^^^^^^^^^^^^
+  File "/app/etl/harvest/transform_fact.py", line 11, in _sha256
+    return hashlib.sha256(a.encode("utf-8")).hexdigest()
+                          ^
+NameError: name 'a' is not defined
+2026-02-21 01:48:54,857 | INFO | harvest_etl | ETL finished ok=0 ng=1
+2026-02-21 01:51:20,470 | INFO | harvest_etl | start csv=test.csv
+2026-02-21 01:51:20,471 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=cp932 reason='cp932' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-21 01:51:20,472 | WARNING | harvest_etl | read_csv failed file=test.csv encoding=shift_jis reason='shift_jis' codec can't decode byte 0x8d in position 18: illegal multibyte sequence
+2026-02-21 01:51:20,474 | INFO | harvest_etl | read_csv_file=test.csv encoding=utf-8-sig rows=2 cols=4
+2026-02-21 01:51:20,482 | INFO | harvest_etl | validate done ok=2 quarantine=0
+2026-02-21 01:51:20,482 | INFO | harvest_etl | quarantine load skipped: rows is empty
+2026-02-21 01:51:20,482 | INFO | harvest_etl | rows summary csv=test.csv df=2 ok=2 quarantine=0
+2026-02-21 01:51:20,800 | INFO | harvest_etl | inserted fact rows=2
+2026-02-21 01:51:20,859 | INFO | harvest_etl | upserted rows=2
+2026-02-21 01:51:20,859 | INFO | harvest_etl | success csv=test.csv
+2026-02-21 01:51:20,859 | INFO | harvest_etl | ETL finished ok=1 ng=0

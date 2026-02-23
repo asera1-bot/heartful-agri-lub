@@ -11,9 +11,9 @@ from etl.harvest.extract import extract_csv
 from etl.harvest.colmap import rename_columns, normalize_values
 from etl.harvest.validate import validate_rows
 from etl.harvest.transform import transform_rows
-from etl.harvest.transform_fact import transform_fact_rows
 from etl.harvest.load import load_rows, load_quarantine_rows, load_fact_rows
-
+from etl.harvest.house_resolve import load_house_map
+from etl.harvest.transform_fact import transform_fact_rows, split_fact_and_house_quarantine
 logger = setup_logger("harvest_etl")
 
 
@@ -34,7 +34,7 @@ def run(csv_files: Iterable[Path]) -> None:
                 df = normalize_values(df)
 
                 ok_models, quarantine_rows = validate_rows(df)
-                load_quarantine_rows(quarantine_rows, source_file=csv_path.name)
+                load_quarantine_rows(quarantine_rows)
 
                 if not ok_models and not quarantine_rows:
                     raise ValueError("no rows after validate")
@@ -44,13 +44,20 @@ def run(csv_files: Iterable[Path]) -> None:
                     f"df={len(df)} ok={len(ok_models)} quarantine={len(quarantine_rows)}"
                 )
 
-                # fact（暫定house注入）
-                fact_rows = transform_fact_rows(
+                # house_map (config) 元fact
+                house_map = load_house_map("/app/etl/harvest/house_map.csv")
+
+                fact_rows, house_q_rows = split_fact_and_house_quarantine(
                     ok_models,
-                    house="A棟",
+                    house_map=house_map,
                     source_file=csv_path.name,
                     source_row_num_start=0,
                 )
+
+                # house未解決も捨てずに隔離
+                load_quarantine_dict_rows(house_q_rows)
+
+                # fact_only
                 load_fact_rows(fact_rows)
 
                 # legacy monthly（当面維持）

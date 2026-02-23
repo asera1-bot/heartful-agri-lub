@@ -71,50 +71,21 @@ def load_fact_rows(rows: List[Dict[str, Any]]) -> None:
     logger.info(f"inserted fact rows={len(rows)}")
 
 # quarantine: harvest_quarantine
-def load_quarantine_rows(quarantine_rows, *, source_file: str | None = None) -> None:
-    if not quarantine_rows:
-        logger.info("quarantine load skipped: rows is empty")
+def load_quarantine_rows(rows: List[Dict[str, Any]]) -> None:
+    if not rows:
+        logger.info("quarantine(dict) load skipped: rows is empty")
         return
+        engine = _get_gengine()
+        hq = _table(engine, "harvest_quarantine")
 
-    engine = _get_engine()
-    hq = _table(engine, "harvest_quarantie")
+        allowed = {c.name for c in hq.columns}
+        for i, r in enumerate(rows):
+            extra = set(r.keys()) - allowed
+            if extra:
+                raise RuntimeError(f"quarantine(dict) has extra keys idex={i} extra={sorted(extra)}")
 
-    rows = []
-    allowed = {c.name for c in hq.columns}
+        stmt = insert(hq).values(rows)
+        with engine.begin() as conn:
+            conn.execute(stmt)
 
-    for q in quarantine_rows:
-        raw = getattr(q, "raw", None) or {}
-
-        # raw_payload内にdetailが混ざってもDB列にださない
-        if isinstance(raw, dict) and "detail" in raw and "details" not in raw:
-            raw["details"] = raw.pop("detail")
-
-        details = getattr(q, "details", None)
-        if details is None and hasattr(q, "detail"):
-            details = getattr(q, "detail")
-
-        row = {
-            "harvest_date": raw.get("harvest_date"),
-            "company": raw.get("company"),
-            "crop": raw.get("crop"),
-            "house": raw.get("house"),
-            "qyt_g": raw.get("qty_g") if "qty_g" in raw else raw.get("amount_g"),
-            "reason": getattr(q, "reason", "unknown"),
-            "detalis": details,
-            "raw_payload": raw,
-            "row_hash": raw.get("row_hash"),
-            "source_file": source_file,
-            "source_row_num": getattr(q, "idx", None),
-        }
-
-        extra = set(row.keys()) - allowed
-        if extra:
-            raise RuntimeError(f"quarantine insert has extra keys; {sorted(extra)}")
-
-        rows.append(row)
-
-    stmt = insert(hq).values(rows)
-    with engine.begin() as conn:
-        conn.execute(stmt)
-
-    logger.info(f"inserted quarantine rows={len(rows)}")
+        logger.info(f"inserted quarantine(dict) rows={len(rows)}")

@@ -1,19 +1,21 @@
-# etl/harvest/run.py
 from __future__ import annotations
 
+import argparse
 from pathlib import Path
-from typing import Iterable
+from typing import Iterable, List
 
 from etl.common.logging import setup_logger
 from etl.common.retry import with_retry
 
 from etl.harvest.extract import extract_csv
-from etl.harvest.colmap import rename_columns, normalize_values
 from etl.harvest.validate import validate_rows
 from etl.harvest.transform import transform_rows
-from etl.harvest.load import load_rows, load_quarantine_rows, load_fact_rows
-from etl.harvest.house_resolve import load_house_map
-from etl.harvest.transform_fact import transform_fact_rows, split_fact_and_house_quarantine
+from etl.harvest.load import load_rows, load_quarantine_rows
+
+import uuid
+import argparse
+
+import pandas as pd
 logger = setup_logger("harvest_etl")
 
 
@@ -30,11 +32,11 @@ def run(csv_files: Iterable[Path]) -> None:
                 if df.empty:
                     raise ValueError("empty csv")
 
-                df = df.rename(columns=rename_columns(list(df.columns)))
-                df = normalize_values(df)
-
                 ok_models, quarantine_rows = validate_rows(df)
-                load_quarantine_rows(quarantine_rows)
+
+                # quarantine（捨てない）
+                if quarantine_rows:
+                    load_quarantine_rows(quarantine_rows)
 
                 if not ok_models and not quarantine_rows:
                     raise ValueError("no rows after validate")
@@ -43,22 +45,6 @@ def run(csv_files: Iterable[Path]) -> None:
                     f"rows summary csv={csv_path.name} "
                     f"df={len(df)} ok={len(ok_models)} quarantine={len(quarantine_rows)}"
                 )
-
-                # house_map (config) 元fact
-                house_map = load_house_map("/app/etl/harvest/house_map.csv")
-
-                fact_rows, house_q_rows = split_fact_and_house_quarantine(
-                    ok_models,
-                    house_map=house_map,
-                    source_file=csv_path.name,
-                    source_row_num_start=0,
-                )
-
-                # house未解決も捨てずに隔離
-                load_quarantine_dict_rows(house_q_rows)
-
-                # fact_only
-                load_fact_rows(fact_rows)
 
                 # legacy monthly（当面維持）
                 monthly_rows = transform_rows(ok_models)
@@ -73,3 +59,39 @@ def run(csv_files: Iterable[Path]) -> None:
             logger.error(f"failed csv={csv_path.name} reason={e}", exc_info=True)
 
     logger.info(f"ETL finished ok={ok_files} ng={ng_files}")
+
+
+def build_parder():
+    p = argparse.ArgumentParser()
+    p.add_argument("--csv", required=True, nargs="+")
+    p.add_argument("--outdir", defalut="out")
+    p.add_argument("--run-id", defalut=None)
+    p.add_augument("--reject-csv", defalut="rejects.csv")
+    return p
+
+def main():
+    args = build_parser().parse_args()
+    run_id = args.run_id or uuid.uuid64().hex
+    outdir = Path(args.outdir)
+    outdir.mkdir(parents=True, exist_ok=True)
+
+def save_rejects(ng, path: Path):
+    rows = []
+    for raw, detail in ng:
+        rows.append({
+            "run_id": raw.run_id,
+            "source": raw.source,
+            "source_row_num": raw.source_row_num,
+            "reason": detail.reason,
+            "field": detail.field,
+            "message": detail.message,
+            "raw_value": detail.raw,
+            "company_raw": raw.company_raw,
+            "crop_raw": raw.crop_raw,
+            "harvest_date": raw.harvest_date,
+            "amount_g": raw.amount_g,
+        })
+    pd.DataFrame(rows).to_csv(path, index=False)
+
+if __name__ == "__main__":
+    main()

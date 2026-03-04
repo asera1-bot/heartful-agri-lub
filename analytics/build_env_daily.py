@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import io
 import re
 import unicodedata
 from pathlib import Path
@@ -43,17 +44,15 @@ def _decode_bytes(raw: bytes) -> str:
 
 def _find_measurement_header(lines: list[str]) -> int:
     """
-    CSVテキストから測定値ヘッダ行（番号,日付 時間,ms,CH1,...）を探す。
-    見つからなければ例外。
+    測定値ヘッダ行を探す。
+    旧："番号,日付"固定
+    新："Time"と"CH1"が含まれる行を採用（文字化けでも拾える）
     """
     for i, line in enumerate(lines):
-        s = _norm(line)
-        # カンマ区切り想定（Converted.csv）
-        if "番号" in s and "日付" in s and "CH1" in s:
+        s = line.replace("\u3000"," ")
+        if ("Time" in s or "日付" in s) and "CH1" in s and "ms" in s:
             return i
-        if "NO." in s and "Time" in s and "CH1" in s:
-            return i
-    raise ValueError("測定値ヘッダ行が見つかりません（CSV）")
+    raise ValueError("測定値ヘッダ行が見つかりません。（Time/日付 + ms + CH1 が条件）")
 
 
 def _read_gl_from_text(text: str) -> pd.DataFrame:
@@ -61,44 +60,49 @@ def _read_gl_from_text(text: str) -> pd.DataFrame:
     GL240 Converted.csv のようなテキストから測定テーブルを抽出してDataFrame化。
     """
     lines = text.splitlines()
-    idx = _find_measurement_header(lines)
+    header_i = _find_measurement_header(lines)
 
-    # ヘッダ行
-    header = lines[idx]
-    cols = [c.strip() for c in header.split(",")]
+    # 単位行をスキップ（次行がNO./Time　や　単位なら data_start を1つ進める）
+    unit_i = header_i + 1
+    unit_line = lines[unit_i] if unit_i < len(lines) else ""
+    unit_l = unit_line.lower()
+    skip = header_i
+    if ("no." in unit_l) or ("time" in unit_l) or ("c" in unit_l) or ("w/m2" in unit_l) or ("%" in unit_l):
+        skip = header_i + 1
 
-    # 単位行（NO./Time/ﾟC/% ...）が直後にあるので、次行が単位っぽいならスキップ
-    start = idx + 1
-    if start < len(lines):
-        unit = _norm(lines[start]).lower()
-        if ("no." in unit) or ("time" in unit) or ("ﾟc" in unit) or ("w/m2" in unit) or ("%" in unit):
-            start = idx + 2
+    # pandasで読む（列が余分にあってもOK)
+    df = pd.read_csv(io.StringIO(text), skiprows=skip, header=0)
 
-    data = "\n".join(lines[start:])
-    df = pd.read_csv(
-        pd.io.common.StringIO(data),
-        names=cols,
-        header=None,
-        engine="python",
-    )
+    # 列名を正規化
+    df.columns = [str(c).strip() for c in df.columns]
 
-    # 日付時刻列の統一
-    if "日付 時間" in df.columns:
-        df = df.rename(columns={"日付 時間": "datetime"})
-    elif "Time" in df.columns:
-        df = df.rename(columns={"Time": "datetime"})
-    else:
-        raise ValueError("datetime列（'日付 時間' または 'Time'）が見つかりません（CSV）")
+    # 時刻列
+    time_col = None
+    for cand in ("日付 時間", "Time", "日時"):
+        if cand in df.columns:
+            time_col = cand
+            break
+    if time_col is None:
+        raise ValueError(f"Time列が見つかりません cols={list(df.columns)}")
 
-    df["datetime"] = pd.to_datetime(df["datetime"], errors="coerce")
-    df = df.dropna(subset=["datetime"])
+    out = pd.DataFrame()
+    out["datetime"] = pd.to_datetime(df[time_col], errors="coerce")
 
-    # CH列の取り出し（CH1..CH5）
-    keep = ["datetime"] + [ch for ch in CH_MAP.keys() if ch in df.columns]
-    df = df[keep].copy()
+    # CH1..CH5だけ拾う（後ろに余計な列があっても無視）
+    for ch in ("CH1", "CH2", "CH3", "CH4", "CH5"):
+        if ch not in df.columns:
+            # まれに'CH1'のような列名になっているケースも想定
+            alt = ch.replace("CH", "CH ")
+            if alt in df.columns:
+                out[ch] = pd.to_numeric(df[alt], errors="coerce")
+            else:
+                # 無いなら列欠落としてNaNで作る（落とさない）
+                out[ch] = pd.NA
+        else:
+            out[ch] = pd.to_numeric(df[ch], errors="coerce")
 
-    return df
-
+    out = out.dropna(subset=["datetime"])
+    return out
 
 def _read_xlsx_env(path: Path) -> pd.DataFrame:
     """
@@ -126,7 +130,9 @@ def _read_xlsx_env(path: Path) -> pd.DataFrame:
                     "照度": "CH5",
                 }
             ).copy()
-            out["datetime"] = pd.to_datetime(out["datetime"], errors="coerce")
+            # "2024-01-05 16:27:53" 形式が多い想定
+            out["datetime"] = pd.to_datetime(out["datetime"], format="%Y-%m-%d %H:%M:%S", errors="coerce")
+            # もしここで大量にNaTが出るなら format を外すか別パターン追加
             out = out.dropna(subset=["datetime"])
             return out[["datetime", "CH1", "CH2", "CH3", "CH4", "CH5"]]
 
@@ -173,7 +179,7 @@ def _read_xlsx_env(path: Path) -> pd.DataFrame:
     else:
         raise ValueError(f"datetime列がありません: {path} cols={list(df.columns)}")
 
-    out["datetime"] = pd.to_datetime(out["datetime"], errors="coerce")
+    out["datetime"] = pd.to_datetime(out["datetime"], format="%Y-%m-%d %H:%M:%S", errors="coerce")
     out = out.dropna(subset=["datetime"])
 
     keep = ["datetime", "CH1", "CH2", "CH3", "CH4", "CH5"]

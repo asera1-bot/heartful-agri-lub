@@ -6,6 +6,10 @@ import math
 import pandas as pd
 import numpy as np
 
+import matplotlib.pyplot as plt
+import matplotlib.font_manager as fm
+plt.rcParams["font.family"] = "Noto Sans CJK JP"
+plt.rcParams["axes.unicode_minus"] = False
 ROOT = Path(__file__).resolve().parent
 DATASETS = ROOT / "datasets"
 REPORTS = ROOT / "reports"
@@ -209,150 +213,175 @@ def save_excel(outputs: dict[str, pd.DataFrame], path: Path) -> None:
         for sheet, df in outputs.items():
             df.to_excel(writer, sheet_name=sheet[:31], index=False)
 
-def main() -> None:
-    if not HARVEST_PATH.exists():
-        raise FileNotFoundError(f"not found: {HARVEST_PATH}")
-    if not ENV_PATH.exists():
-        raise FileNotFoundError(f"not found: {ENV_PATH}")
+def setup_matplotlib_font() -> None:
+    candidates = [
+        "Noto Sans CJK JP",
+        "Noto Sans JP",
+        "IPAexGothic",
+        "IPAGothic",
+        "Yu Gothic",
+        "MS Gothic",
+    ]
+    available = {f.name for f in fm.fontManager.ttflist}
+    selected = next((name for name in candidates if name in available), None)
 
-    raw = pd.read_csv(HARVEST_PATH)
-    harvest = clean_harvest(raw)
-    env = load_env(ENV_PATH)
-    joined = attach_env_same_day(harvest, env)
+    if selected:
+        plt.rcParams["font.family"] = selected
 
-    summary_all = summary_by_variety_level(harvest)
-    summary_joined = summary_env_hit(joined)
-    cumulative = cumulative_table(harvest)
-    consistency = company_house_consistency(harvest)
+    plt.rcParams["axes.unicode_minus"] = False
+    plt.rcParams["figure.autolayout"] = True
 
-    cleaned_path = REPORTS / "harvest_master_cleaned.csv"
-    joined_path = REPORTS / "harvest_env_joined_same_day.csv"
-    xlsx_path = REPORTS / "analysis_summary.xlsx"
-
-    harvest.to_csv(cleaned_path, index=False)
-    joined.to_csv(joined_path, index=False)
-
-    save_excel(
-        {
-            "harvest_master_cleaned": harvest,
-            "summary_all": summary_all,
-            "summary_env_hit": summary_joined,
-            "cumulative": cumulative,
-            "consistency_check": consistency,
-        },
-        xlsx_path,
-    )
-
-    hit_rate = joined["env_hit"].mean() if ("env_hit" in joined.columns and len(joined)) else float("nan")
-
-    print(f"saved: {cleaned_path}")
-    print(f"saved: {joined_path}")
-    print(f"saved: {xlsx_path}")
-    print(f"rows_harvest={len(harvest)} rows_joined={len(joined)} env_hit_rate={hit_rate:.3f}")
-
-def plot_bar_yield(summary_all: pd.DataFrame) -> None:
-    import matplotlib.pyplot as plt
-    df = summary_all.copy()
-    if df.empty:
+def plot_yield_per_plant_59ki(df: pd.DataFrame, out_path: Path) -> None:
+    d = add_plant_counts(df).copy()
+    if d.empty:
         return
 
-    target = df[df["期"] == 59].copy()
-    if target.empty:
+    if "期" in d.columns:
+        d = d[d["期"].astype("Int64") == 59].copy()
+    if d.empty:
         return
 
-    # 先に品種×段で集計して1セル１値にする
-    plot_df = (
-        target.groupby(["品種_base", "段"], dropna=False)["total_yield_g"]
+    d["品種_base"] = d["品種_base"].astype(str)
+    d["段"] = d["段"].astype(str)
+
+    value_col = "株当たり収量"
+
+    agg = (
+        d.groupby(["品種_base", "段"], dropna=False)[value_col]
         .sum()
         .reset_index()
+        .rename(columns={"品種_base": "品種", value_col: "yield_per_plant_g"})
     )
 
-    levels = ["上", "中", "下"]
-    varieties = list(plot_df["品種_base"].dropna().unique())
-    fig, ax = plt.subplots(figsize=(12, 7))
-    width = 0.22
-    x = np.arange(len(varieties))
+    stage_order = ["上", "中", "下"]
+    agg["段"] = pd.Categorical(agg["段"], categories=stage_order, ordered=True)
+    agg = agg.sort_values(["品種", "段"])
 
-    for i, level in enumerate(levels):
-        sub = plot_df[plot_df["段"] == level].set_index("品種_base")
-        y = [float(sub.loc[v, "total_yield_g"]) if v in sub.index else 0.0 for v in varieties]
-        ax.bar(x + (i - 1) * width, y, width=width, label=level)
+    pivot = agg.pivot(index="品種", columns="段", values="yield_per_plant_g")
+    pivot = pivot.reindex(columns=stage_order)
 
-    ax.set_title("59期 実験棟 品種×段 総収量")
+    ax = pivot.plot(kind="bar", figsize=(12, 6), rot=0)
+    ax.set_title("59期 株当たり収量比較 （品種×段）")
     ax.set_xlabel("品種")
-    ax.set_ylabel("総収量(g)")
-    ax.set_xticks(x)
-    ax.set_xticklabels(varieties, rotation=0)
+    ax.set_ylabel("株当たり収量（g/株）")
     ax.legend(title="段")
-    fig.tight_layout()
-    fig.savefig(FIG_DIR / "01 bar_total_yield_59ki.png", dpi=200)
-    plt.close(fig)
+    ax.grid(axis="y", linestyle="--", alpha=0.4)
 
-def plot_bar_yield_per_plant(summary_all: pd.DataFrame) -> None:
-    import matplotlib.pyplot as plt
+    plt.tight_layout()
+    plt.savefig(out_path, dpi=200, bbox_inches="tight")
+    plt.close()
 
-    df = summary_all.copy()
-    if df.empty:
+def plot_cumulative_by_variety(df: pd.DataFrame, variety: str, out_path: Path) -> None:
+    d = df.copy()
+
+    if "期" in d.columns:
+        d = d[d["期"].astype(str) == "59"].copy()
+
+    d = d[d["品種"].astype(str) == str(variety)].copy()
+    if d.empty:
         return
 
-    target = df[(df["期"] == 59) & (df["yield_per_plant_g"].notna())].copy()
-    if target.empty:
-        return
-    
-    plot_df = (
-        target.groupby(["品種_base", "段"], dropna=False)["yield_per_plant_g"]
+    date_col = "date" if "date" in d.columns else "日付"
+    yield_col = "収量" if "収量" in d.columns else "yield_g"
+
+    d[date_col] = pd.to_datetime(d[date_col], errors="coerce")
+    d = d.dropna(subset=[date_col])
+    d["段"] = d["段"].astype(str)
+
+    daily = (
+        d.groupby([date_col,"段"], dropna=False)[yield_col]
         .sum()
         .reset_index()
+        .sort_values([date_col, "段"])
     )
 
-    levels = ["上", "中", "下"]
-    varieties = list(target["品種_base"].dropna().unique())
+    stage_order = ["上", "中", "下"]
 
-    fig, ax = plt.subplots(figsize=(12, 7))
-    width = 0.22
-    x = np.arange(len(varieties))
+    plt.figure(figsize=(12, 6))
+    for stage in stage_order:
+        s = daily[daily["段"] == stage].copy()
+        if s.empty:
+            continue
+        s = s.sort_values(date_col)
+        s["累積収量_g"] = s[yield_col].cumsum()
+        plt.plot(s[date_col], s["累積収量_g"], marker="o", label=stage)
 
-    for i, level in enumerate(levels):
-        sub = plot_df[plot_df["段"] == level].set_index("品種_base")
-        y = [float(sub.loc[v, "yield_per_plant_g"]) if v in sub.index else 0.0 for v in varieties]
-        ax.bar(x + (i - 1) * width, y, width=width, label=level)
-    
-    ax.axhline(250, linestyle="--", linewidth=1)
-    ax.set_title("59期 実験棟 品種×段 株当り収量")
-    ax.set_xlabel("品種")
-    ax.set_ylabel("株当り収量(g/株)")
-    ax.set_xticks(x)
-    ax.set_xticklabels(varieties, rotation=0)
-    ax.legend(title="段")
-    fig.tight_layout()
-    fig.savefig(FIG_DIR / "02_bar_yield_per_plant_59ki.png", dpi=200)
-    plt.close(fig)
+    plt.title(f"59期 累積収量推移({variety})")
+    plt.xlabel("日付")
+    plt.ylabel("累積収量（g）")
+    plt.legend(title="段")
+    plt.grid(True, linestyle="--", alpha=0.4)
 
-def plot_cumulative(cumulative: pd.DataFrame) -> None:
-    import matplotlib.pyplot as plt
+    plt.tight_layout()
+    plt.savefig(out_path, dpi=200, bbox_inches="tight")
+    plt.close()
 
-    df = cumulative.copy()
-    if df.empty:
+def plot_box_yield_distribution(df: pd.DataFrame, out_path: Path) -> None:
+    d = df.copy()
+
+    if "期" in d.columns:
+        d = d[d["期"].astype(str) == "59"].copy()
+
+    if "env_hit" in d.columns:
+        d = d[d["env_hit"].fillna(False)]
+
+    if d.empty:
         return
 
-    target = df[df["期"] == 59].copy()
-    if target.empty:
-        return
+    yield_col = "収量" if "収量" in d.columns else "yield_g"
 
-    target["series"] = target["品種_base"].astype(str) + "_" + target["段"].astype(str)
+    d["品種"] = d["品種"].astype(str)
+    d["段"] = d["段"].astype(str)
+    d["品種_段"] = d["品種"] + "\n" + d["段"]
 
-    fig, ax = plt.subplots(figsize=(13, 7))
-    for key, sub in target.groupby("series"):
-        sub = sub.sort_values("日付")
-        ax.plot(sub["日付"], sub["累積収量_g"], label=key)
+    stage_rank = {"上": 0, "中": 1, "下": 2}
+    order_df = (
+        d[["品種", "段", "品種_段"]]
+        .drop_duplicates()
+        .assign(_rank=lambda x: x["段"].map(stage_rank).fillna(99))
+        .sort_values(["品種", "_rank"])
+    )
+    order = order_df["品種_段"].tolist()
 
-    ax.set_title("59期 実験棟 累積収量曲線")
-    ax.set_xlabel("日付")
-    ax.set_ylabel("累積収量(g)")
-    ax.legend(ncol=2, fontsize=8)
-    fig.tight_layout()
-    fig.savefig(FIG_DIR / "03_cumulative_yield_59ki.png", dpi=200)
-    plt.close(fig)
+    data = [
+        d.loc[d["品種_段"] == key, yield_col].dropna().values
+        for key in order
+    ]
+    data = [x for x in data if len(x) > 0]
+    labels = [key for key in order if len(d.loc[d["品種_段"] == key, yield_col].dropna()) > 0]
+
+    plt.figure(figsize=(14, 6))
+    plt.boxplot(data, tick_labels=labels, patch_artist=False)
+    plt.title("59期 収量分布 （品種×段, env_hitのみ）")
+    plt.xlabel("品種 × 段")
+    plt.ylabel("収量（g）")
+    plt.xticks(rotation=0)
+    plt.grid(axis="y", linestyle="--", alpha=0.4)
+
+    plt.tight_layout()
+    plt.savefig(out_path, dpi=200, bbox_inches="tight")
+    plt.close()
+
+def generate_presentation_figures(df: pd.DataFrame, figures_dir: Path) -> None:
+    figures_dir.mkdir(parents=True, exist_ok=True)
+    setup_matplotlib_font()
+
+    plot_yield_per_plant_59ki(
+        df,
+        figures_dir / "01_bar_yield_per_plant_59ki.png",
+    )
+
+    for variety in ["よつぼし", "紅ほっぺ", "かおり野", "やよいひめ"]:
+        plot_cumulative_by_variety(
+            df,
+            variety,
+            figures_dir / f"02_cumulative_yield_59ki_{variety}.png",
+        )
+
+    plot_box_yield_distribution(
+        df,
+        figures_dir / f"03_box_yield_distribution_59ki_envhit.png",
+    )
 
 def plot_vpd_scatter(joined: pd.DataFrame) -> None:
     import matplotlib.pyplot as plt
@@ -382,36 +411,6 @@ def plot_vpd_scatter(joined: pd.DataFrame) -> None:
     ax.legend()
     fig.tight_layout()
     fig.savefig(FIG_DIR / "04_scatter_vpd_vs_yield_59ki.png", dpi=200)
-    plt.close(fig)
-
-def plot_temp_scatter(joined: pd.DataFrame) -> None:
-    import matplotlib.pyplot as plt
-
-    df = joined.copy()
-    if df.empty:
-        return
-
-    target = df[(df["期"] == 59) & (df["env_hit"])].copy()
-    if target.empty or "temp_c_mean" not in target.columns:
-        return
-
-    fig, ax = plt.subplots(figsize=(10, 7))
-    for variety, sub in target.groupby("品種_base"):
-        ax.scatter(sub["temp_c_mean"], sub["収量"], label=variety)
-
-    valid = target[["temp_c_mean", "収量"]].dropna()
-    if len(valid) >= 2:
-        z = np.polyfit(valid["temp_c_mean"], valid["収量"], 1)
-        xs = np.linspace(valid["temp_c_mean"].min(), valid["temp_c_mean"].max(), 100)
-        ys = z[0] * xs * z[1]
-        ax.plot(xs, ys, linewidth=1)
-
-    ax.set_title("59期 実験棟 温度平均 × 収量")
-    ax.set_xlabel("温度平均(℃ )")
-    ax.set_ylabel("収量(g)")
-    ax.legend()
-    fig.tight_layout()
-    fig.savefig(FIG_DIR / "05_scatter_temp vs_yield_59ki.png", dpi=200)
     plt.close(fig)
 
 def main() -> None:
@@ -448,12 +447,7 @@ def main() -> None:
         xlsx_path,
     )
 
-    plot_bar_yield(summary_all)
-    plot_bar_yield_per_plant(summary_all)
-    plot_cumulative(cumulative)
-    plot_vpd_scatter(joined)
-    plot_temp_scatter(joined)
-
+    generate_presentation_figures(joined, FIG_DIR)
     hit_rate = joined["env_hit"].mean() if ("env_hit" in joined.columns and len(joined)) else float("nan")
 
     print(f"saved: {cleaned_path}")

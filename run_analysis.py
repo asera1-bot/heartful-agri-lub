@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 import re
+import difflib import SequenceMatcher
 import math
 import pandas as pd
 import numpy as np
@@ -51,6 +52,45 @@ HOUSE_MAP = {
     "z": "Z",
     "Ｚ": "Z",
 }
+ALLOWED_COMPANIES = {
+    "IIM",
+    "IDAJ",
+    "×",
+    "Adobe",
+    "イソップ",
+    "岡部",
+    "QB",
+    "ケイアイ",
+    "サンセイランディック",
+    "サンテレホン",
+    "三和",
+    "慈誠会",
+    "昭和女子",
+    "ソリトン",
+    "東レ",
+    "NaITO",
+    "日建",
+    "日本ファブテック",
+    "日本ロレアル",
+    "バリュエンス",
+    "富士機械",
+    "富士機材",
+    "牧野フライス",
+    "マルテー",
+}
+
+ALLOWED_VARIETIES = {
+    "紅ほっぺ",
+    "かおり野",
+    "やよいひめ",
+    "よつぼし",
+}
+
+MANUAL_FIX_MAP = {
+    "処理": {
+        "断": "通常",
+    },
+}
 
 def normalize_text(x: object) -> object:
     if pd.isna(x):
@@ -59,6 +99,100 @@ def normalize_text(x: object) -> object:
     s = s.replace("\u3000", " ")
     return s
 
+def try_fix_mojibake_utf8_cp932(x: object) -> object:
+    if pd.isna(x):
+        return x
+    s = str(x)
+    
+    try:
+        fixed = s.encode("cp932").decode("utf-8")
+    except (UnicodeEncodeError, UnicodeDecodeError):
+        return s
+
+    return fixed
+
+def apply_manual_known_fixes(x: object) -> object:
+    if pd.isna(x):
+        return x
+    s = str(x)
+    fix_map = {
+        "繝槭Ν繝・・": "マルテー",
+        "邏・⊇縺｣縺ｺ": "よつぼし",
+        "断": "通常",
+    }
+    return fix_map.get(s, s)
+
+def repair_mojibake_columns(df: pd.DataFrame, cols: list[str]) -> pd.DataFrame:
+    out = df.copy()
+    for c in cols:
+        if c in out.columns:
+            out[c] = out[c].map(try_fix_mojibake_utf8_cp932)
+    return out
+
+def apply_manual_fix_map(df: pd.DataFrame) -> pd.DataFrame:
+    out = df.copy()
+    for col, fix_map in MANUAL_FIX_MAP.items():
+        if col in out.columns:
+            out[col] = out[col].replace(fix_map)
+    return out
+
+def validate_master_values(df: pd.DataFrame) -> None:
+    if "企業名" in df.columns:
+        bad_companies = sorted(set(df["企業名"].dropna()) - ALLOWED_COMPANIES)
+        if bad_companies:
+            print("[unknown companies]", bad_companies)
+
+    if "品種_base" in df.columns:
+        bad_varieties = sorted(set(df["品種_base"].dropna()) - ALLOWED_VARIETIES)
+        if bad_varieties:
+            print("[unknown varieties]", bad_varieties)
+
+def longest_common_substring_len(a: str, b: str) -> int:
+    if not a or not b:
+        return 0
+    dp = [[0] * (len(b) + 1) for _ in range(len(a) + 1)]
+    best = 0
+    for i in range(1, len(a) + 1):
+        for j in range(1, len(b) + 1):
+            if a[i - 1] == b[j - 1]:
+                dp[i][j] = dp[i - 1][j - 1] + 1
+                best = max(best, dp[i][j])
+    return best
+
+def similarity_score(src: str, cand: str) -> float:
+    src = str(src)
+    cand = str(cand)
+
+    ratio = SequenceMatcher(None, src, cand).ratio()
+    common_chars = len(set(src) & set(cand))
+    common_ratio = common_chars / max(len(set(cand)), 1)
+    lcs_ratio = longest_common_substring_len(src, cand) / max(len(cand), 1)
+
+    return ratio * 0.5 + common_ratio * 0.2 + lcs_ratio * 0.3
+
+def suggest_best_match(value: object, candidates: list[str], threshold: float = 0.55) -> object:
+    if pd.isna(value):
+        return value
+
+    s = str(value).strip()
+    if not s:
+        return s
+
+    if s in candidates:
+        return s
+
+    scored = [(cand, similarity_score(s, cand)) for cand in candidates]
+    scored.sort(key=lambda x: x[1], reverse=True)
+
+    best_cand, best_score = score[0]
+    return best_cand if best_score >= threshold else s
+
+def apply_fuzzy_master_matching(df: pd.DataFrame) -> pd.DataFrame:
+    out = df.copy()
+
+    if "企業名" in out.columns:
+        out["企業名"] = out["企業名"].map(lambda x: suggest_best_match(x, ALLOWED_COMPANIES, threshold=0.50))
+        #続きから
 def clean_harvest(df: pd.DataFrame) -> pd.DataFrame:
     out = df.copy()
     out.columns = [normalize_text(c) for c in out.columns]
@@ -72,6 +206,13 @@ def clean_harvest(df: pd.DataFrame) -> pd.DataFrame:
     out["期"] = pd.to_numeric(out["期"], errors="coerce")
     for c in ["企業名", "ハウスNo", "段", "品種", "処理"]:
         out[c] = out[c].map(normalize_text)
+        out[c] = out[c].map(try_fix_mojibake_utf8_cp932)
+        out[c] = out[c].map(apply_manual_known_fixes)
+
+    out = repair_mojibake_columns(
+        out,
+        ["企業名", "ハウスNo", "段", "品種", "処理"]
+    )
 
     out["企業名"] = out["企業名"].replace(COMPANY_MAP)
     out["ハウスNo"] = out["ハウスNo"].replace(HOUSE_MAP)
@@ -421,6 +562,7 @@ def main() -> None:
 
     raw = pd.read_csv(HARVEST_PATH)
     harvest = clean_harvest(raw)
+    print(harvest[["企業名", "ハウスNo", "段", "品種", "処理"]].head(10))
     env = load_env(ENV_PATH)
     joined = attach_env_same_day(harvest, env)
 
@@ -433,8 +575,8 @@ def main() -> None:
     joined_path = REPORTS / "harvest_env_joined_same_day.csv"
     xlsx_path = REPORTS / "analytics_summary.xlsx"
 
-    harvest.to_csv(cleaned_path, index=False)
-    joined.to_csv(joined_path, index=False)
+    harvest.to_csv(cleaned_path, index=False, encoding="utf-8-sig")
+    joined.to_csv(joined_path, index=False, encoding="utf-8-sig")
 
     save_excel(
         {

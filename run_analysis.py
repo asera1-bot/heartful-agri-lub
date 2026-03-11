@@ -2,13 +2,14 @@ from __future__ import annotations
 
 from pathlib import Path
 import re
-import difflib import SequenceMatcher
+from difflib import SequenceMatcher
 import math
 import pandas as pd
 import numpy as np
 
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
+
 plt.rcParams["font.family"] = "Noto Sans CJK JP"
 plt.rcParams["axes.unicode_minus"] = False
 ROOT = Path(__file__).resolve().parent
@@ -21,6 +22,9 @@ ENV_PATH = DATASETS / "env_daily.csv"
 
 REPORTS.mkdir(parents=True, exist_ok=True)
 FIG_DIR.mkdir(parents=True, exist_ok=True)
+
+PACK_G = 100
+PACK_PRICE_YEN = 300
 
 # 59期 実験棟（Z棟）の株数 （暫定、枯死数は無視）
 PLANT_COUNTS_59 = {
@@ -99,6 +103,65 @@ def normalize_text(x: object) -> object:
     s = s.replace("\u3000", " ")
     return s
 
+def is_house_no_like(x: object) -> bool:
+    if pd.isna(x):
+        return False
+    return bool(re.fullmatch(r"[A-Z]\d|[A-Z]\d\d|Z|E\d|B\d|A\d", str(x).strip()))
+
+def is_stage_like(x: object) -> bool:
+    if pd.isna(x):
+        return False
+    return str(x).strip() in {"上", "中", "下", "上段", "中段", "下段"}
+
+def is_variety_like(x: object) -> bool:
+    if pd.isna(x):
+        return False
+    s = str(x).strip()
+    return s in {
+        "紅ほっぺ", "かおり野", "やよいひめ", "弥生姫", "よつぼし",
+        "繧・ｈ縺・・繧・", "繧・ｈ縺・ｧｫ", "縺九♀繧翫・", "邏・⊇縺｣縺ｺ"
+    }
+
+def extract_house_from_company(x: object) -> tuple[object, object]:
+    if pd.isna(x):
+        return x, np.nan
+    s = str(x).strip()
+    m = re.search(r"(.*?)([A-Z]\d\d?|Z)$", s)
+    if not m:
+        return s, np.nan
+    company = m.group(1).strip()
+    house = m.group(2).strip()
+    return company, house
+
+def fix_left_shifted_rows(df: pd.DataFrame) -> pd.DataFrame:
+    out = df.copy()
+
+    for idx, row in out.iterrows():
+        company = row.get("企業名")
+        house = row.get("ハウスNo")
+        stage = row.get("段")
+        variety = row.get("品種")
+        proc = row.get("処理")
+
+        # 崩れ判定
+        # ハウスNoに段が入り、段に品種が入り、品種が空欄 or 不自然
+        if is_stage_like(house) and is_variety_like(stage):
+            new_company, extracted_house = extract_house_from_compnay(company)
+
+            out.at[idx, "企業名"] = new_compnay
+            if pd.notna(extracted_house):
+                out.at[idx, "ハウスNo"] = extracted_house
+                out.at[idx, "段"] = house
+                out.at[idx, "品種"] = stage
+                out.at[idx, "処理"] = variety
+                out.at[idx, "収量"] = proc
+                # パック列は元の収量列に入っているので右へずらす
+                # すでのrow["収量"]に入っている値は保持不要
+                # 元パック値は既存 row["収量"]側にあったので移動
+                if "パック" in out.columns:
+                    out.st[idx, "パック"] = row.get("収量")
+    return out
+
 def try_fix_mojibake_utf8_cp932(x: object) -> object:
     if pd.isna(x):
         return x
@@ -122,19 +185,6 @@ def apply_manual_known_fixes(x: object) -> object:
     }
     return fix_map.get(s, s)
 
-def repair_mojibake_columns(df: pd.DataFrame, cols: list[str]) -> pd.DataFrame:
-    out = df.copy()
-    for c in cols:
-        if c in out.columns:
-            out[c] = out[c].map(try_fix_mojibake_utf8_cp932)
-    return out
-
-def apply_manual_fix_map(df: pd.DataFrame) -> pd.DataFrame:
-    out = df.copy()
-    for col, fix_map in MANUAL_FIX_MAP.items():
-        if col in out.columns:
-            out[col] = out[col].replace(fix_map)
-    return out
 
 def validate_master_values(df: pd.DataFrame) -> None:
     if "企業名" in df.columns:
@@ -146,6 +196,18 @@ def validate_master_values(df: pd.DataFrame) -> None:
         bad_varieties = sorted(set(df["品種_base"].dropna()) - ALLOWED_VARIETIES)
         if bad_varieties:
             print("[unknown varieties]", bad_varieties)
+    
+
+def print_company_condidates(df: pd.DataFrame) -> None:
+    if "企業名" not in df.columns:
+        return
+
+    unkown = sorted(set(df["企業名"].dropna()) - ALLOWED_COMPANIES)
+    for raw in unknown:
+        scored = [(cand, similarity_score(raw, cand)) for cand in ALLOWED_COMPANIES]
+        scored.sort(key=lambda x: x[1], reverse=True)
+        top3 = scored[:3]
+        print(f"[company candidate] raw={raw} top3={top3}")
 
 def longest_common_substring_len(a: str, b: str) -> int:
     if not a or not b:
@@ -184,7 +246,7 @@ def suggest_best_match(value: object, candidates: list[str], threshold: float = 
     scored = [(cand, similarity_score(s, cand)) for cand in candidates]
     scored.sort(key=lambda x: x[1], reverse=True)
 
-    best_cand, best_score = score[0]
+    best_cand, best_score = scored[0]
     return best_cand if best_score >= threshold else s
 
 def apply_fuzzy_master_matching(df: pd.DataFrame) -> pd.DataFrame:
@@ -192,10 +254,31 @@ def apply_fuzzy_master_matching(df: pd.DataFrame) -> pd.DataFrame:
 
     if "企業名" in out.columns:
         out["企業名"] = out["企業名"].map(lambda x: suggest_best_match(x, ALLOWED_COMPANIES, threshold=0.50))
-        #続きから
+        
+    if "品種" in out.columns:
+        out["品種"] = out["品種"].map(lambda x: suggest_best_match(x, ALLOWED_VARIETIES, threshold=0.50))
+
+    return out
+
+
+def ensure_dir(path: Path) -> None:
+    path.mkdir(parents=True, exist=True)
+
+def load_harvest_cleaned(path: Path) -> pd.DataFrame:
+    df = pd.read_csv(path, encoding="utf-8-sig")
+    df["日付"] = pd.to_datetime(df["日付"], errors="coerce")
+    df["期"] = pd.to_numeric(df["期"], errors="coerce")
+    df["収量"] = pd.to_numeric(df["収量"], errors="coerce")
+    if "株数" in df.columns:
+        df["株数"] = pd.to_numeric(df["株数"], errors="coerce")
+    return df
+
+def add_house_group(df: pd.DataFrame) -> pd.DataFrame:
+    out = df#ここまで
 def clean_harvest(df: pd.DataFrame) -> pd.DataFrame:
     out = df.copy()
     out.columns = [normalize_text(c) for c in out.columns]
+    out = fix_left_shifted_rows(out)
 
     required = ["日付", "期", "企業名", "ハウスNo", "段", "品種", "処理", "収量", "パック"]
     missing = [c for c in required if c not in out.columns]
@@ -204,19 +287,18 @@ def clean_harvest(df: pd.DataFrame) -> pd.DataFrame:
 
     out["日付"] = pd.to_datetime(out["日付"], errors="coerce")
     out["期"] = pd.to_numeric(out["期"], errors="coerce")
-    for c in ["企業名", "ハウスNo", "段", "品種", "処理"]:
+    target_cols = ["企業名", "ハウスNo", "段", "品種", "処理"]
+
+    for c in target_cols:
         out[c] = out[c].map(normalize_text)
         out[c] = out[c].map(try_fix_mojibake_utf8_cp932)
         out[c] = out[c].map(apply_manual_known_fixes)
 
-    out = repair_mojibake_columns(
-        out,
-        ["企業名", "ハウスNo", "段", "品種", "処理"]
-    )
-
     out["企業名"] = out["企業名"].replace(COMPANY_MAP)
     out["ハウスNo"] = out["ハウスNo"].replace(HOUSE_MAP)
     out["段"] = out["段"].replace({"上段": "上", "中段": "中", "下段": "下"})
+    
+    out = apply_fuzzy_master_matching(out)
 
     out["収量"] = pd.to_numeric(out["収量"], errors="coerce")
     out["パック"] = pd.to_numeric(out["パック"], errors="coerce")
@@ -236,6 +318,8 @@ def clean_harvest(df: pd.DataFrame) -> pd.DataFrame:
     out = out[out["段"].notna()].copy()
 
     out["date"] = out["日付"].dt.normalize()
+    validate_master_values(out)
+
     return out
 
 def load_env(path: Path) -> pd.DataFrame:
@@ -372,6 +456,29 @@ def setup_matplotlib_font() -> None:
     plt.rcParams["axes.unicode_minus"] = False
     plt.rcParams["figure.autolayout"] = True
 
+def plot_ki_comparison(df: pd.DataFrame, out_path: Path) -> None:
+    d = df.copy()
+    d = d[d["期"].isin([58, 59])]
+
+    agg = (
+        d.groupby(["期", "品種_base"])["収量"]
+        .mean()
+        .reset_index()
+    )
+
+    pivot = agg.pivot(index="品種_base", columns="期", values="収量")
+
+    ax = pivot.plot(kind="bar", figsize=(10, 6))
+
+    ax.set_title("58期 vs 59期 品種平均収量")
+    ax.set_xlabel("品種")
+    ax.set_ylabel("平均収量(g)")
+    ax.legend(title="期")
+    
+    plt.tight_layout()
+    plt.savefig(out_path, dpi=200)
+    plt.close()
+
 def plot_yield_per_plant_59ki(df: pd.DataFrame, out_path: Path) -> None:
     d = add_plant_counts(df).copy()
     if d.empty:
@@ -418,7 +525,7 @@ def plot_cumulative_by_variety(df: pd.DataFrame, variety: str, out_path: Path) -
     if "期" in d.columns:
         d = d[d["期"].astype(str) == "59"].copy()
 
-    d = d[d["品種"].astype(str) == str(variety)].copy()
+    d = d[d["品種_base"].astype(str) == str(variety)].copy()
     if d.empty:
         return
 
@@ -507,6 +614,11 @@ def generate_presentation_figures(df: pd.DataFrame, figures_dir: Path) -> None:
     figures_dir.mkdir(parents=True, exist_ok=True)
     setup_matplotlib_font()
 
+    plot_ki_comparison(
+        df,
+        figures_dir / "05_variety_58vs59.png",
+    )
+
     plot_yield_per_plant_59ki(
         df,
         figures_dir / "01_bar_yield_per_plant_59ki.png",
@@ -560,7 +672,10 @@ def main() -> None:
     if not ENV_PATH.exists():
         raise FileNotFoundError(f"not found: {ENV_PATH}")
 
-    raw = pd.read_csv(HARVEST_PATH)
+    try:
+        raw = pd.read_csv(HARVEST_PATH, encoding="utf-8-sig")
+    except UnicodeDecodeError:
+        raw = pd.read_csv(HARVEST_PATH, encoding="cp932")
     harvest = clean_harvest(raw)
     print(harvest[["企業名", "ハウスNo", "段", "品種", "処理"]].head(10))
     env = load_env(ENV_PATH)
@@ -584,7 +699,7 @@ def main() -> None:
             "summary_all": summary_all,
             "summary_env_hit": summary_joined,
             "cumulative": cumulative,
-            "consistency_chech": consistency,
+            "consistency_check": consistency,
         },
         xlsx_path,
     )
@@ -596,7 +711,7 @@ def main() -> None:
     print(f"saved: {joined_path}")
     print(f"saved: {xlsx_path}")
     print(f"saved figures: {FIG_DIR}")
-    print(f"rows_harvest={len(harvest)} rows_joined={len(joined)} ecn_hit_rate={hit_rate:.3f}")
+    print(f"rows_harvest={len(harvest)} rows_joined={len(joined)} env_hit_rate={hit_rate:.3f}")
 
 if __name__ == "__main__":
     main()
